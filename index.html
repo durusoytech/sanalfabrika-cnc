@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--ARTIFACT-START-->
+<title>SanalFabrika CNC</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Saira+Semi+Condensed:wght@500;600;700&display=swap">
+<style>
+/* Düzen: kontrol odası. Yapışkan üst bar, 1360px sayfa kolonu; fabrika zemini üstten görünüş şema olarak çizilir. */
+:root {
+  --bg: #e8ecea;
+  --surface: #fbfcfb;
+  --surface-2: #f2f5f3;
+  --surface-3: #e5eae8;
+  --line: #d4dbd8;
+  --line-strong: #b6c1bd;
+  --ink: #132027;
+  --ink-2: #43535a;
+  --muted: #6c7c82;
+  --accent: #0c6a74;
+  --accent-strong: #08525a;
+  --accent-ink: #ffffff;
+  --accent-wash: rgba(12, 106, 116, 0.09);
+  --floor: #dde3e0;
+  --floor-grid: rgba(19, 32, 39, 0.055);
+  --floor-mark: #d6a300;
+
+  --c-own: #2a78d6;
+  --c-platform: #eb6834;
+  --c-net: #1baf7a;
+  --c-cost: #6250d6;
+  --c-fee: #eda100;
+  --c-gross: #5b6e79;
+  --c-maint: #98a5aa;
+  --on-own: #ffffff;
+  --on-platform: #24120a;
+
+  --s-run: #0ca30c;
+  --s-setup: #e59f00;
+  --s-idle: #8f9ca1;
+  --s-maint: #4a7fbf;
+  --s-proc: #7a5fd0;
+  --good-ink: #0b6b2a;
+
+  --grid: #e2e7e5;
+  --axis: #bfc9c5;
+
+  --m-body: #cfd6d3;
+  --m-edge: #9aa8a5;
+  --m-glass: #a9bfc5;
+  --m-panel: #2b3a41;
+  --m-table: #7c8a8e;
+
+  --cam-bg: #0b1013;
+  --heat-0: #e3ece9; --heat-1: #cde2fb; --heat-2: #9ec5f4; --heat-3: #6da7ec; --heat-4: #3987e5; --heat-5: #256abf; --heat-6: #104281;
+
+  --shadow-1: 0 1px 2px rgba(19, 32, 39, 0.06), 0 6px 18px rgba(19, 32, 39, 0.06);
+  --shadow-2: 0 12px 40px rgba(19, 32, 39, 0.20);
+
+  --font-display: "Saira Semi Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1113; --surface: #141b1e; --surface-2: #192226; --surface-3: #202a2e;
+    --line: #243035; --line-strong: #34434a;
+    --ink: #e5ecec; --ink-2: #aab9bd; --muted: #79898f;
+    --accent: #3cb0ba; --accent-strong: #67c7cf; --accent-ink: #032125; --accent-wash: rgba(60, 176, 186, 0.12);
+    --floor: #11181b; --floor-grid: rgba(229, 236, 236, 0.045); --floor-mark: #a98410;
+    --c-own: #3987e5; --c-platform: #d95926; --c-net: #199e70; --c-cost: #9085e9; --c-fee: #c98500; --c-gross: #8295a0; --c-maint: #56656b;
+    --on-own: #06121f; --on-platform: #1d0c05;
+    --s-run: #22b822; --s-setup: #f2b01e; --s-idle: #6f7f85; --s-maint: #5e93d3; --s-proc: #9a83e6; --good-ink: #3fcf6a;
+    --grid: #1f292d; --axis: #33424a;
+    --m-body: #2c373b; --m-edge: #47575e; --m-glass: #12303a; --m-panel: #0e1619; --m-table: #56666c;
+    --heat-0: #1b2427; --heat-1: #0d366b; --heat-2: #184f95; --heat-3: #256abf; --heat-4: #3987e5; --heat-5: #6da7ec; --heat-6: #9ec5f4;
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 18px rgba(0, 0, 0, 0.25);
+    --shadow-2: 0 16px 48px rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1113; --surface: #141b1e; --surface-2: #192226; --surface-3: #202a2e;
+  --line: #243035; --line-strong: #34434a;
+  --ink: #e5ecec; --ink-2: #aab9bd; --muted: #79898f;
+  --accent: #3cb0ba; --accent-strong: #67c7cf; --accent-ink: #032125; --accent-wash: rgba(60, 176, 186, 0.12);
+  --floor: #11181b; --floor-grid: rgba(229, 236, 236, 0.045); --floor-mark: #a98410;
+  --c-own: #3987e5; --c-platform: #d95926; --c-net: #199e70; --c-cost: #9085e9; --c-fee: #c98500; --c-gross: #8295a0; --c-maint: #56656b;
+  --on-own: #06121f; --on-platform: #1d0c05;
+  --s-run: #22b822; --s-setup: #f2b01e; --s-idle: #6f7f85; --s-maint: #5e93d3; --s-proc: #9a83e6; --good-ink: #3fcf6a;
+  --grid: #1f292d; --axis: #33424a;
+  --m-body: #2c373b; --m-edge: #47575e; --m-glass: #12303a; --m-panel: #0e1619; --m-table: #56666c;
+  --heat-0: #1b2427; --heat-1: #0d366b; --heat-2: #184f95; --heat-3: #256abf; --heat-4: #3987e5; --heat-5: #6da7ec; --heat-6: #9ec5f4;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 18px rgba(0, 0, 0, 0.25);
+  --shadow-2: 0 16px 48px rgba(0, 0, 0, 0.55);
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }
+body { background: var(--bg); color: var(--ink); }
+</style>
+<link rel="stylesheet" href="assets/styles.css">
+<!--ARTIFACT-BODY-->
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner wrap">
+    <a class="brand" href="#fabrikalar" data-action="view" data-view="fabrikalar" aria-label="SanalFabrika ana sayfa">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="2" y="2" width="28" height="28" rx="7" fill="var(--accent)"/>
+        <path d="M11 7h10v5l-2 2v4l-1.5 1.5V25h-3v-5.5L13 18v-4l-2-2z" fill="var(--accent-ink)"/>
+        <path d="M14 14.5l4-1.6M14 17l4-1.6" stroke="var(--accent)" stroke-width="1.2"/>
+      </svg>
+      <span class="brand-text"><b>SanalFabrika</b><small>CNC dijital ikiz</small></span>
+    </a>
+    <nav class="nav" aria-label="Ana menü">
+      <a href="#fabrikalar" data-action="view" data-view="fabrikalar" class="nav-link">Fabrikalar</a>
+      <a href="#makinelerim" data-action="view" data-view="makinelerim" class="nav-link">Makinelerim</a>
+      <a href="#analiz" data-action="view" data-view="analiz" class="nav-link">Analiz</a>
+    </nav>
+    <div class="top-right">
+      <div class="clock mono" id="clock" aria-live="off"></div>
+      <div class="top-net" title="Bu ay şu ana kadarki net kârınız">
+        <span>Bu ay net</span><b id="top-net">—</b>
+      </div>
+      <button class="icon-btn" id="theme-btn" data-action="theme" aria-label="Temayı değiştir" title="Açık / koyu tema">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" fill="currentColor"/></svg>
+      </button>
+      <div class="avatar" title="Demo yatırımcı hesabı">DA</div>
+    </div>
+  </div>
+</header>
+
+<main id="view" class="wrap" tabindex="-1"></main>
+
+<div class="drawer-backdrop" id="drawer-backdrop" data-action="close-drawer" hidden></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" hidden></aside>
+
+<div class="modal-backdrop" id="modal-root" hidden></div>
+<div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="assets/data.js"></script>
+<script src="assets/charts.js"></script>
+<script src="assets/live.js"></script>
+<script src="assets/app.js"></script>
+<!--ARTIFACT-END-->
+</body>
+</html>
