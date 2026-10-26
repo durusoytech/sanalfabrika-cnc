@@ -1,4 +1,4 @@
--- SanalFabrika · Başlangıç verisi (demo)
+-- Emek Sermaye · Başlangıç verisi (demo)
 -- Migration'lardan sonra bir kez çalıştırılır. Tüm tarihler çalıştırıldığı ana göre hesaplanır.
 
 insert into public.factories (id, code, name, short_name, city, lead, area_m2, power_kva, operators_per_shift, status, open_at, since_label, sort) values

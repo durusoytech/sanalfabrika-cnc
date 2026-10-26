@@ -1,4 +1,4 @@
--- SanalFabrika · 3/4 · Güvenlik: satır bazlı erişim (RLS) ve açık yetkiler
+-- Emek Sermaye · 3/4 · Güvenlik: satır bazlı erişim (RLS) ve açık yetkiler
 -- Supabase, 30 Mayıs 2026'dan sonra açılan projelerde (mevcut projelerde 30 Ekim 2026'dan itibaren)
 -- tabloları Data API'ye otomatik açmıyor. Bu yüzden her yetki burada açıkça veriliyor.
 

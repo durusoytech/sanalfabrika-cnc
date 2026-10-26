@@ -3,157 +3,508 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!--ARTIFACT-START-->
-<title>SanalFabrika CNC</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<title>Emek Sermaye · Sermayeniz üretimde çalışsın</title>
+<meta name="description" content="Emek Sermaye ile profesyonelce işletilen fabrikalardaki CNC tezgâhlarına ortak olun. Makineniz gerçek siparişler için parça üretir, kazancınızı dakika dakika izlersiniz.">
+<meta name="theme-color" content="#06323a">
+<link rel="canonical" href="https://emeksermaye.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Emek Sermaye">
+<meta property="og:title" content="Emek Sermaye · Sermayeniz üretimde çalışsın">
+<meta property="og:description" content="CNC üretim kapasitesine ortak olun. Makinenin sahibi siz olun, üretimi ve kazancı canlı izleyin.">
+<meta property="og:url" content="https://emeksermaye.com/">
+<meta property="og:locale" content="tr_TR">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23087a80'/%3E%3Cpath d='M20 6.5 31.7 13.25v13.5L20 33.5 8.3 26.75v-13.5z' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linejoin='round'/%3E%3Crect x='13.6' y='20.6' width='3.3' height='6.4' rx='1' fill='%23fff'/%3E%3Crect x='18.35' y='17.2' width='3.3' height='9.8' rx='1' fill='%23fff'/%3E%3Crect x='23.1' y='13.8' width='3.3' height='13.2' rx='1' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Saira+Semi+Condensed:wght@500;600;700&display=swap">
-<style>
-/* Düzen: kontrol odası. Yapışkan üst bar, 1360px sayfa kolonu; fabrika zemini üstten görünüş şema olarak çizilir. */
-:root {
-  --bg: #e8ecea;
-  --surface: #fbfcfb;
-  --surface-2: #f2f5f3;
-  --surface-3: #e5eae8;
-  --line: #d4dbd8;
-  --line-strong: #b6c1bd;
-  --ink: #132027;
-  --ink-2: #43535a;
-  --muted: #6c7c82;
-  --accent: #0c6a74;
-  --accent-strong: #08525a;
-  --accent-ink: #ffffff;
-  --accent-wash: rgba(12, 106, 116, 0.09);
-  --floor: #dde3e0;
-  --floor-grid: rgba(19, 32, 39, 0.055);
-  --floor-mark: #d6a300;
-
-  --c-own: #2a78d6;
-  --c-platform: #eb6834;
-  --c-net: #1baf7a;
-  --c-cost: #6250d6;
-  --c-fee: #eda100;
-  --c-gross: #5b6e79;
-  --c-maint: #98a5aa;
-  --on-own: #ffffff;
-  --on-platform: #24120a;
-
-  --s-run: #0ca30c;
-  --s-setup: #e59f00;
-  --s-idle: #8f9ca1;
-  --s-maint: #4a7fbf;
-  --s-proc: #7a5fd0;
-  --good-ink: #0b6b2a;
-
-  --grid: #e2e7e5;
-  --axis: #bfc9c5;
-
-  --m-body: #cfd6d3;
-  --m-edge: #9aa8a5;
-  --m-glass: #a9bfc5;
-  --m-panel: #2b3a41;
-  --m-table: #7c8a8e;
-
-  --cam-bg: #0b1013;
-  --heat-0: #e3ece9; --heat-1: #cde2fb; --heat-2: #9ec5f4; --heat-3: #6da7ec; --heat-4: #3987e5; --heat-5: #256abf; --heat-6: #104281;
-
-  --shadow-1: 0 1px 2px rgba(19, 32, 39, 0.06), 0 6px 18px rgba(19, 32, 39, 0.06);
-  --shadow-2: 0 12px 40px rgba(19, 32, 39, 0.20);
-
-  --font-display: "Saira Semi Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
-  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --r-sm: 6px; --r-md: 10px; --r-lg: 14px;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0c1113; --surface: #141b1e; --surface-2: #192226; --surface-3: #202a2e;
-    --line: #243035; --line-strong: #34434a;
-    --ink: #e5ecec; --ink-2: #aab9bd; --muted: #79898f;
-    --accent: #3cb0ba; --accent-strong: #67c7cf; --accent-ink: #032125; --accent-wash: rgba(60, 176, 186, 0.12);
-    --floor: #11181b; --floor-grid: rgba(229, 236, 236, 0.045); --floor-mark: #a98410;
-    --c-own: #3987e5; --c-platform: #d95926; --c-net: #199e70; --c-cost: #9085e9; --c-fee: #c98500; --c-gross: #8295a0; --c-maint: #56656b;
-    --on-own: #06121f; --on-platform: #1d0c05;
-    --s-run: #22b822; --s-setup: #f2b01e; --s-idle: #6f7f85; --s-maint: #5e93d3; --s-proc: #9a83e6; --good-ink: #3fcf6a;
-    --grid: #1f292d; --axis: #33424a;
-    --m-body: #2c373b; --m-edge: #47575e; --m-glass: #12303a; --m-panel: #0e1619; --m-table: #56666c;
-    --heat-0: #1b2427; --heat-1: #0d366b; --heat-2: #184f95; --heat-3: #256abf; --heat-4: #3987e5; --heat-5: #6da7ec; --heat-6: #9ec5f4;
-    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 18px rgba(0, 0, 0, 0.25);
-    --shadow-2: 0 16px 48px rgba(0, 0, 0, 0.55);
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0c1113; --surface: #141b1e; --surface-2: #192226; --surface-3: #202a2e;
-  --line: #243035; --line-strong: #34434a;
-  --ink: #e5ecec; --ink-2: #aab9bd; --muted: #79898f;
-  --accent: #3cb0ba; --accent-strong: #67c7cf; --accent-ink: #032125; --accent-wash: rgba(60, 176, 186, 0.12);
-  --floor: #11181b; --floor-grid: rgba(229, 236, 236, 0.045); --floor-mark: #a98410;
-  --c-own: #3987e5; --c-platform: #d95926; --c-net: #199e70; --c-cost: #9085e9; --c-fee: #c98500; --c-gross: #8295a0; --c-maint: #56656b;
-  --on-own: #06121f; --on-platform: #1d0c05;
-  --s-run: #22b822; --s-setup: #f2b01e; --s-idle: #6f7f85; --s-maint: #5e93d3; --s-proc: #9a83e6; --good-ink: #3fcf6a;
-  --grid: #1f292d; --axis: #33424a;
-  --m-body: #2c373b; --m-edge: #47575e; --m-glass: #12303a; --m-panel: #0e1619; --m-table: #56666c;
-  --heat-0: #1b2427; --heat-1: #0d366b; --heat-2: #184f95; --heat-3: #256abf; --heat-4: #3987e5; --heat-5: #6da7ec; --heat-6: #9ec5f4;
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 18px rgba(0, 0, 0, 0.25);
-  --shadow-2: 0 16px 48px rgba(0, 0, 0, 0.55);
-  color-scheme: dark;
-}
-:root[data-theme="light"] { color-scheme: light; }
-body { background: var(--bg); color: var(--ink); }
-</style>
-<link rel="stylesheet" href="assets/styles.css">
-<!--ARTIFACT-BODY-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;600;700;800&family=Red+Hat+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/brand.css">
+<link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
-<header class="topbar">
-  <div class="topbar-inner wrap">
-    <a class="brand" href="#fabrikalar" data-action="view" data-view="fabrikalar" aria-label="SanalFabrika ana sayfa">
-      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
-        <rect x="2" y="2" width="28" height="28" rx="7" fill="var(--accent)"/>
-        <path d="M11 7h10v5l-2 2v4l-1.5 1.5V25h-3v-5.5L13 18v-4l-2-2z" fill="var(--accent-ink)"/>
-        <path d="M14 14.5l4-1.6M14 17l4-1.6" stroke="var(--accent)" stroke-width="1.2"/>
-      </svg>
-      <span class="brand-text"><b>SanalFabrika</b><small>CNC dijital ikiz</small></span>
-    </a>
-    <nav class="nav" aria-label="Ana menü">
-      <a href="#fabrikalar" data-action="view" data-view="fabrikalar" class="nav-link">Fabrikalar</a>
-      <a href="#makinelerim" data-action="view" data-view="makinelerim" class="nav-link">Makinelerim</a>
-      <a href="#analiz" data-action="view" data-view="analiz" class="nav-link">Analiz</a>
+<a class="skip" href="#icerik">İçeriğe geç</a>
+
+<!-- ÜST BİLGİ ÇUBUĞU -->
+<div class="utility">
+  <div class="wrap utility-inner">
+    <p class="utility-live"><i class="lamp on" aria-hidden="true"></i>Tesislerimizde şu an <b data-live="running">12</b> makine kesimde</p>
+    <nav class="utility-links" aria-label="Yardımcı bağlantılar">
+      <a href="#guvence">Risk bildirimi</a>
+      <a href="#sss">Sık sorulan sorular</a>
+      <a href="platform.html">Platform demosu</a>
     </nav>
-    <div class="top-right">
-      <span class="mode-chip" id="mode-chip" data-mode="demo" title="Verinin nereden geldiği">Demo verisi</span>
-      <div class="clock mono" id="clock" aria-live="off"></div>
-      <div class="top-net" title="Bu ay şu ana kadarki net kârınız">
-        <span>Bu ay net</span><b id="top-net">—</b>
+  </div>
+</div>
+
+<!-- ÜST MENÜ -->
+<header class="site-header" id="ust">
+  <div class="wrap header-inner">
+    <a class="logo" href="#ust" aria-label="Emek Sermaye ana sayfa">
+      <svg class="logo-mark" viewBox="0 0 40 40" aria-hidden="true">
+        <rect width="40" height="40" rx="10" style="fill:var(--accent)"/>
+        <path d="M20 6.5 31.7 13.25v13.5L20 33.5 8.3 26.75v-13.5z" style="fill:none;stroke:var(--accent-ink);stroke-width:2.4;stroke-linejoin:round"/>
+        <rect x="13.6" y="20.6" width="3.3" height="6.4" rx="1" style="fill:var(--accent-ink)"/>
+        <rect x="18.35" y="17.2" width="3.3" height="9.8" rx="1" style="fill:var(--accent-ink)"/>
+        <rect x="23.1" y="13.8" width="3.3" height="13.2" rx="1" style="fill:var(--accent-ink)"/>
+      </svg>
+      <span class="logo-text"><b>Emek</b> Sermaye</span>
+    </a>
+    <nav class="main-nav" id="main-nav" aria-label="Ana menü">
+      <a href="#nasil">Nasıl çalışır</a>
+      <a href="#dakika">Getiri modeli</a>
+      <a href="#makineler">Makineler</a>
+      <a href="#tesisler">Tesisler</a>
+      <a href="#guvence">Güvence</a>
+      <a href="#sss">SSS</a>
+      <div class="nav-cta-mobile">
+        <a class="btn btn-outline" href="platform.html#giris">Giriş yap</a>
+        <a class="btn btn-primary" href="platform.html#kayit">Yatırımcı ol</a>
       </div>
-      <button class="icon-btn" id="theme-btn" data-action="theme" aria-label="Temayı değiştir" title="Açık / koyu tema">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" fill="currentColor"/></svg>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn" id="theme-btn" type="button" aria-label="Açık veya koyu tema"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="currentColor"/></svg></button>
+      <a class="btn btn-outline hide-sm" href="platform.html#giris">Giriş yap</a>
+      <a class="btn btn-primary hide-sm" href="platform.html#kayit">Yatırımcı ol</a>
+      <button class="icon-btn menu-btn" id="menu-btn" type="button" aria-controls="main-nav" aria-expanded="false" aria-label="Menüyü aç">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
-      <div class="account">
-        <button class="avatar" id="account-btn" data-action="account" aria-haspopup="menu" aria-expanded="false" title="Hesap">DA</button>
-        <div class="account-menu" id="account-menu" role="menu" hidden></div>
-      </div>
     </div>
   </div>
 </header>
 
-<main id="view" class="wrap" tabindex="-1"></main>
+<main id="icerik">
 
-<div class="drawer-backdrop" id="drawer-backdrop" data-action="close-drawer" hidden></div>
-<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" hidden></aside>
+<!-- AÇILIŞ -->
+<section class="hero band">
+  <svg class="hero-toolpath" viewBox="0 0 1200 560" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g fill="none" stroke-linecap="round">
+      <rect x="760" y="80" width="380" height="360" rx="40" class="tp tp-1"/>
+      <rect x="800" y="120" width="300" height="280" rx="28" class="tp tp-2"/>
+      <rect x="840" y="160" width="220" height="200" rx="18" class="tp tp-3"/>
+      <path d="M880 200h140M880 230h140M880 260h140M880 290h140M880 320h140" class="tp tp-4"/>
+      <circle cx="1120" cy="470" r="22" class="tp tp-2"/><circle cx="1050" cy="470" r="22" class="tp tp-2"/><circle cx="980" cy="470" r="22" class="tp tp-2"/>
+      <path d="M-20 520 C 200 470, 380 540, 620 500" class="tp tp-1"/>
+    </g>
+  </svg>
+  <div class="wrap hero-inner">
+    <div class="hero-copy">
+      <p class="kicker">CNC üretim kapasitesine ortak olun</p>
+      <h1>Sermayeniz <span>üretimde</span> çalışsın.</h1>
+      <p class="hero-lede">Emek Sermaye, sermayeyi ustalıkla buluşturur. Profesyonelce işletilen fabrikalarımızdaki CNC tezgâhlarından birinin sahibi olursunuz. Makineniz otomotivden medikale gerçek siparişler için parça üretir. Kazancınızı dakika dakika platformdan izlersiniz.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary btn-lg" href="platform.html#kayit">Yatırımcı ol</a>
+        <a class="btn btn-light btn-lg" href="#nasil">Nasıl çalışır?</a>
+      </div>
+      <ul class="hero-points">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Makinenin sahibi sizsiniz</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Dakika bazlı, şeffaf ücret</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Üretimi canlı izleme</li>
+      </ul>
+    </div>
 
-<div class="modal-backdrop" id="modal-root" hidden></div>
-<div class="tooltip" id="tooltip" role="tooltip" hidden></div>
-<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    <aside class="live-card" aria-label="Tesislerin anlık durumu">
+      <div class="live-head">
+        <div><span class="live-title">Tesislerimiz şu an</span><span class="live-time mono" data-live="clock">—</span></div>
+        <span class="data-chip" data-live="mode">Demo verisi</span>
+      </div>
+      <div class="live-figs">
+        <div><span>Kesimdeki makine</span><b><span data-live="running">12</span><small>/<span data-live="active">17</span></small></b></div>
+        <div><span>Bugün üretilen parça</span><b data-live="parts">—</b></div>
+        <div><span>7 günlük doluluk</span><b data-live="util">—</b></div>
+      </div>
+      <ul class="live-list" data-live="list" aria-live="off"></ul>
+      <a class="live-foot" href="platform.html#fabrikalar">Fabrika zeminini platformda görün <span aria-hidden="true">→</span></a>
+    </aside>
+  </div>
+
+  <div class="wrap">
+    <dl class="hero-stats">
+      <div><dt>Tesis</dt><dd data-live="factories">3</dd><p>Gebze, Bursa ve İzmir'de organize sanayi bölgelerinde</p></div>
+      <div><dt>CNC slotu</dt><dd data-live="slots">30</dd><p>3, 4 ve 5 eksen makineler için hazır alan</p></div>
+      <div><dt>Çalışma düzeni</dt><dd>7/24</dd><p>Üç vardiya, her vardiyada operatör ve bakım ekibi</p></div>
+      <div><dt>Kendi işinizde platform payı</dt><dd data-live="fee-own">%5</dd><p>Müşteriyi platform bulduğunda <span data-live="fee-platform">%20</span></p></div>
+    </dl>
+  </div>
+</section>
+
+<!-- SERMAYENİZ NE YAPIYOR -->
+<section class="section" id="nasil">
+  <div class="wrap">
+    <header class="section-head">
+      <p class="eyebrow">Nasıl çalışır</p>
+      <h2>Sermayeniz ne yapıyor?</h2>
+      <p>Emek Sermaye'de paranız bir hesapta beklemez. Gerçek bir makineye dönüşür. O makine fabrikada deneyimli operatörlerin elinde parça üretir ve çalıştığı her dakika size gelir yazar. Süreç altı adımdan oluşur.</p>
+    </header>
+
+    <ol class="steps">
+      <li>
+        <span class="step-no">1</span>
+        <h3>Makinenizi seçersiniz</h3>
+        <p>Tesislerimizdeki boş bir slota 3, 4 veya 5 eksen CNC tezgâhı alırsınız. Sözleşme imzalanır ve %30 ön ödeme yapılır.</p>
+        <span class="step-meta">2 gün</span>
+      </li>
+      <li>
+        <span class="step-no">2</span>
+        <h3>Makine üretilir ve tedarik edilir</h3>
+        <p>Tezgâh üreticide hazırlanır, fabrika kabul testinden geçer, sigortalı olarak tesise taşınır.</p>
+        <span class="step-meta">Yaklaşık 3 ay</span>
+      </li>
+      <li>
+        <span class="step-no">3</span>
+        <h3>Kurulum ve kalibrasyon</h3>
+        <p>Temel, enerji ve basınçlı hava bağlantıları yapılır. Lazer ve ballbar ölçümünden sonra ilk parça onaylanır.</p>
+        <span class="step-meta">5 gün + 3 gün</span>
+      </li>
+      <li>
+        <span class="step-no">4</span>
+        <h3>Makineniz üretime başlar</h3>
+        <p>Operatör, bakım, elektrik, takım ve sigorta tesis tarafından yönetilir. Makine üç vardiya, haftanın her günü çalışabilir.</p>
+        <span class="step-meta">7/24</span>
+      </li>
+      <li>
+        <span class="step-no">5</span>
+        <h3>Siparişler işlenir</h3>
+        <p>Kendi müşterinizin işini getirebilirsiniz. Boş kalan saatleri platform; otomotiv, medikal, havacılık ve kalıp sektörlerinden gelen siparişlerle doldurur.</p>
+        <span class="step-meta">Dakika ücretiyle</span>
+      </li>
+      <li>
+        <span class="step-no">6</span>
+        <h3>Net kazanç hesabınıza geçer</h3>
+        <p>Makinenin çalıştığı dakikalar faturalanır. İşletme ücreti ve platform payı düşüldükten sonra kalan tutar her ay size ödenir.</p>
+        <span class="step-meta">Aylık</span>
+      </li>
+    </ol>
+
+    <div class="pact">
+      <div class="pact-side">
+        <p class="eyebrow">Sermaye sizden</p>
+        <h3>Makinenin sahibi siz olursunuz</h3>
+        <ul>
+          <li>Makine bedeli ile nakliye ve kurulum</li>
+          <li>Kendi müşterilerinizi getirme hakkı</li>
+          <li>Makinenin her dakikasını izleme hakkı</li>
+        </ul>
+      </div>
+      <div class="pact-mid" aria-hidden="true"><span>+</span></div>
+      <div class="pact-side">
+        <p class="eyebrow">Emek bizden</p>
+        <h3>Tesisi ve üretimi biz işletiriz</h3>
+        <ul>
+          <li>Fabrika alanı, enerji, vinç ve altyapı</li>
+          <li>Operatör, bakım, kalibrasyon ve sigorta</li>
+          <li>Müşteri bulma, iş planlama ve raporlama</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BİR DAKİKANIN ANATOMİSİ -->
+<section class="section section-alt" id="dakika">
+  <div class="wrap">
+    <header class="section-head">
+      <p class="eyebrow">Getiri modeli</p>
+      <h2>Bir dakikalık üretim nasıl paylaşılır?</h2>
+      <p>Müşteri, makinenin çalıştığı her dakika için sabit bir ücret öder. Bu ücretten tesisin işletme maliyeti ve platform payı düşülür, kalan kısım makine sahibine kalır. Makine boşta beklerken size işletme ücreti yansımaz.</p>
+    </header>
+
+    <div class="anatomy card">
+      <div class="anatomy-controls">
+        <div class="seg" role="group" aria-label="Makine tipi" id="an-axes">
+          <button type="button" data-axes="3" aria-pressed="false">3 eksen</button>
+          <button type="button" data-axes="4" aria-pressed="true">4 eksen</button>
+          <button type="button" data-axes="5" aria-pressed="false">5 eksen</button>
+        </div>
+        <div class="seg" role="group" aria-label="İşi kim buldu" id="an-source">
+          <button type="button" data-source="own" aria-pressed="true">İşi ben buldum</button>
+          <button type="button" data-source="platform" aria-pressed="false">İşi platform buldu</button>
+        </div>
+      </div>
+      <div class="anatomy-body" id="anatomy"></div>
+    </div>
+  </div>
+</section>
+
+<!-- MAKİNE SEÇENEKLERİ -->
+<section class="section" id="makineler">
+  <div class="wrap">
+    <header class="section-head">
+      <p class="eyebrow">Makine seçenekleri</p>
+      <h2>Üç tezgâh, üç farklı yatırım profili</h2>
+      <p>Daha fazla eksen daha karmaşık parça, daha yüksek dakika ücreti ve daha yüksek yatırım demektir. Aşağıdaki aylık tahminler %70 doluluk ve işlerin yarısının sizden geldiği varsayımıyla hesaplanmıştır.</p>
+    </header>
+    <div class="machines" id="machines"></div>
+  </div>
+</section>
+
+<!-- KAZANÇ HESAPLAYICI -->
+<section class="section section-alt" id="hesapla">
+  <div class="wrap">
+    <header class="section-head">
+      <p class="eyebrow">Kazanç hesaplayıcı</p>
+      <h2>Yatırımınız ne zaman geri döner?</h2>
+      <p>Makine tipini, beklediğiniz doluluğu ve işlerin ne kadarını kendinizin getireceğini seçin. Hesap, siparişten üretime kadar geçen yaklaşık 3,5 aylık tedarik ve kurulum süresini de içerir.</p>
+    </header>
+
+    <div class="calc card">
+      <form class="calc-controls" id="calc-form" onsubmit="return false">
+        <fieldset>
+          <legend>Makine tipi</legend>
+          <div class="seg seg-wide" role="group" id="calc-axes">
+            <button type="button" data-axes="3" aria-pressed="false">3 eksen</button>
+            <button type="button" data-axes="4" aria-pressed="true">4 eksen</button>
+            <button type="button" data-axes="5" aria-pressed="false">5 eksen</button>
+          </div>
+        </fieldset>
+        <div class="range">
+          <label for="calc-count">Makine adedi <b id="calc-count-v">1</b></label>
+          <input type="range" id="calc-count" min="1" max="5" step="1" value="1">
+        </div>
+        <div class="range">
+          <label for="calc-util">Beklenen doluluk <b id="calc-util-v">%70</b></label>
+          <input type="range" id="calc-util" min="30" max="95" step="5" value="70">
+          <small>Tesislerimizin son 30 günlük ortalaması %<span data-live="util-num">72</span>.</small>
+        </div>
+        <div class="range">
+          <label for="calc-own">Kendi getirdiğiniz iş payı <b id="calc-own-v">%50</b></label>
+          <input type="range" id="calc-own" min="0" max="100" step="10" value="50">
+          <small>Kendi işinizde platform payı %5, platformun bulduğu işte %20.</small>
+        </div>
+      </form>
+      <div class="calc-results">
+        <div class="calc-hero">
+          <div><span>Tahmini aylık net kazanç</span><b id="calc-net">—</b></div>
+          <div><span>Geri dönüş süresi</span><b id="calc-payback">—</b></div>
+        </div>
+        <dl class="calc-lines" id="calc-lines"></dl>
+        <div class="calc-chart">
+          <div class="calc-chart-head">
+            <b>Birikimli net kazanç ve yatırım</b>
+            <span class="legend"><span><i class="key key-net"></i>Birikimli net</span><span><i class="key key-line"></i>Toplam yatırım</span></span>
+          </div>
+          <div class="chart" id="calc-chart"></div>
+          <p class="calc-milestones" id="calc-milestones"></p>
+        </div>
+      </div>
+    </div>
+    <p class="disclaimer">Hesaplama örnek amaçlıdır ve yatırım tavsiyesi değildir. Gerçek kazanç; doluluk, iş karışımı, arıza ve bakım süreleri, döviz kuru ve piyasa talebine göre değişir. Geçmiş doluluk oranları gelecekteki sonuçların garantisi değildir.</p>
+  </div>
+</section>
+
+<!-- TESİSLER -->
+<section class="section" id="tesisler">
+  <div class="wrap">
+    <header class="section-head">
+      <p class="eyebrow">Tesislerimiz</p>
+      <h2>Makineniz nerede çalışacak?</h2>
+      <p>Her tesiste 10 CNC slotu var. Slotlar dolu, boş veya tedarikte olarak platformda anlık görünür. Aşağıdaki rakamlar platformdaki dijital ikizden okunur.</p>
+    </header>
+    <div class="factories" id="factories"></div>
+  </div>
+</section>
+
+<!-- ŞEFFAFLIK -->
+<section class="section section-alt" id="seffaflik">
+  <div class="wrap">
+    <header class="section-head">
+      <p class="eyebrow">Şeffaflık</p>
+      <h2>Makinenizin her dakikasını görürsünüz</h2>
+      <p>Her makinenin bir dijital ikizi var. Platformda makinenizin iş takvimini, o an hangi parçayı işlediğini, bugün kaç parça çıktığını ve kazancın kuruşu kuruşuna nasıl oluştuğunu görürsünüz.</p>
+    </header>
+    <div class="features">
+      <article class="feature card">
+        <div class="feature-art art-cam" aria-hidden="true">
+          <span class="rec"><i></i>CANLI</span>
+          <svg viewBox="0 0 160 90"><rect x="40" y="18" width="80" height="54" rx="3" class="fa-stock"/><path d="M50 28h60M50 36h60M50 44h60M50 52h46" class="fa-path"/><circle cx="96" cy="52" r="6" class="fa-tool"/></svg>
+        </div>
+        <h3>Canlı izleme</h3>
+        <p>Kesim sırasında eksen konumları, iş mili devri ve yükü, çalışan NC programı ve parça sayacı.</p>
+      </article>
+      <article class="feature card">
+        <div class="feature-art art-cal" aria-hidden="true">
+          <svg viewBox="0 0 160 90"><g class="fa-grid"><path d="M10 20h140M10 38h140M10 56h140M10 74h140"/></g><rect x="14" y="23" width="60" height="12" rx="3" class="fa-own"/><rect x="78" y="23" width="44" height="12" rx="3" class="fa-plat"/><rect x="30" y="41" width="90" height="12" rx="3" class="fa-plat"/><rect x="14" y="59" width="40" height="12" rx="3" class="fa-maint"/><rect x="58" y="59" width="80" height="12" rx="3" class="fa-own"/></svg>
+        </div>
+        <h3>İş takvimi</h3>
+        <p>Haftalık plan, hangi işin kimden geldiği, adet, çevrim süresi ve planlı bakımlar.</p>
+      </article>
+      <article class="feature card">
+        <div class="feature-art art-split" aria-hidden="true">
+          <svg viewBox="0 0 160 90"><rect x="12" y="34" width="62" height="20" rx="3" class="fa-cost"/><rect x="76" y="34" width="12" height="20" class="fa-fee"/><rect x="90" y="34" width="58" height="20" rx="3" class="fa-net"/><path d="M12 66h136" class="fa-axis"/></svg>
+        </div>
+        <h3>Dakika bazlı gelir</h3>
+        <p>Brüt gelir, operatör, elektrik, bakım, takım, tesis ve sigorta kalemleri, platform payı ve size kalan net tutar.</p>
+      </article>
+      <article class="feature card">
+        <div class="feature-art art-trend" aria-hidden="true">
+          <svg viewBox="0 0 160 90"><path d="M12 76h136" class="fa-axis"/><rect x="18" y="52" width="12" height="24" rx="2" class="fa-net"/><rect x="38" y="44" width="12" height="32" rx="2" class="fa-net"/><rect x="58" y="40" width="12" height="36" rx="2" class="fa-net"/><rect x="78" y="30" width="12" height="46" rx="2" class="fa-net"/><rect x="98" y="26" width="12" height="50" rx="2" class="fa-net"/><rect x="118" y="20" width="12" height="56" rx="2" class="fa-net fa-soft"/></svg>
+        </div>
+        <h3>Aylık analiz</h3>
+        <p>Günlük kâr, doluluk ısı haritası, makine bazında kârlılık ve yatırımın geri dönüş takibi.</p>
+      </article>
+    </div>
+    <div class="center-cta"><a class="btn btn-primary" href="platform.html">Platformu demo verisiyle gezin</a></div>
+  </div>
+</section>
+
+<!-- GÜVENCE VE RİSKLER -->
+<section class="section" id="guvence">
+  <div class="wrap">
+    <header class="section-head">
+      <p class="eyebrow">Güvence</p>
+      <h2>Sermayeniz nasıl korunur, riskler neler?</h2>
+      <p>Güven, iyi haberleri olduğu kadar riskleri de açıkça söylemekle kurulur. Yatırım kararı vermeden önce iki listeyi de okumanızı isteriz.</p>
+    </header>
+    <div class="assurance">
+      <div class="card assurance-col">
+        <h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.4-3 8.2-7 9.5-4-1.3-7-5.1-7-9.5V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>Güvenceler</h3>
+        <ul class="ticks">
+          <li><b>Makine sizin.</b> Satın aldığınız tezgâh sizin mülkiyetinizdedir, tesis yalnızca işletir.</li>
+          <li><b>Sigorta ücrete dahil.</b> Makine sigortası dakika başı işletme ücretinin içindedir.</li>
+          <li><b>Planlı bakım.</b> Her makine yaklaşık iki haftada bir bakım ve kalibrasyondan geçer.</li>
+          <li><b>Çakışmasız planlama.</b> Aynı makineye aynı anda iki iş planlanması sistemde engellenir.</li>
+          <li><b>Müşteri gizliliği.</b> Kendi müşterilerinizin adı ve geliri yalnızca size görünür.</li>
+          <li><b>Boşta ücret yok.</b> İşletme ücreti yalnızca makinenin çalıştığı dakikalarda kesilir.</li>
+        </ul>
+      </div>
+      <div class="card assurance-col risk">
+        <h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 21.5 20h-19z"/><path d="M12 10v4.5M12 17v.3"/></svg>Riskler</h3>
+        <ul class="warns">
+          <li><b>Doluluk değişebilir.</b> Sipariş azaldığında makine boş kalır ve gelir düşer.</li>
+          <li><b>Arıza ve duruş.</b> Beklenmedik arızalar üretimi günlerce durdurabilir.</li>
+          <li><b>Tedarik gecikmesi.</b> Makinenin teslimi üretici veya gümrük kaynaklı uzayabilir.</li>
+          <li><b>Kur riski.</b> Fiyatlar ve dakika ücretleri dolar bazlıdır, kur değişimi kazancı TL olarak etkiler.</li>
+          <li><b>Likidite.</b> Makineyi nakde çevirmek bir banka hesabından para çekmek kadar hızlı değildir.</li>
+          <li><b>Teknolojik eskime.</b> Makinelerin piyasa değeri yıllar içinde düşer.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="notice"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>Bu sitedeki rakamlar örnek ve simülasyon verileridir. Emek Sermaye bir yatırım danışmanlığı hizmeti değildir. Yatırım kararınızı kendi değerlendirmenizle ve gerekirse bir uzmana danışarak verin.</p>
+  </div>
+</section>
+
+<!-- KİMLER İÇİN -->
+<section class="section section-alt" id="kimler">
+  <div class="wrap">
+    <header class="section-head">
+      <p class="eyebrow">Kimler için</p>
+      <h2>Üç farklı yatırımcı, aynı şeffaflık</h2>
+    </header>
+    <div class="personas">
+      <article class="card persona">
+        <h3>Bireysel yatırımcı</h3>
+        <p>Birikimini gerçek bir üretim varlığına bağlamak isteyenler için. İş bulmayı platforma bırakırsınız, üretimi ve kazancı platformdan takip edersiniz.</p>
+        <p class="persona-meta">Platform işlerinde pay %20</p>
+      </article>
+      <article class="card persona">
+        <h3>Atölye ve üreticiler</h3>
+        <p>Müşterisi olan ama kapasite yatırımını kendi tesisinde yapmak istemeyenler için. Kendi işinizi getirin, makineniz bizim tesisimizde üretsin.</p>
+        <p class="persona-meta">Kendi işlerinizde pay %5</p>
+      </article>
+      <article class="card persona">
+        <h3>Kurumsal yatırımcı</h3>
+        <p>Birden fazla makineyle üretim kapasitesine yatırım yapmak isteyen şirketler ve aile ofisleri için. Makine bazında aylık raporlama ve geri dönüş takibi.</p>
+        <p class="persona-meta">Birden çok makine, tek panel</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- DUYURULAR -->
+<section class="section" id="duyurular">
+  <div class="wrap">
+    <header class="section-head section-head-row">
+      <div><p class="eyebrow">Duyurular</p><h2>Tesislerden haberler</h2></div>
+    </header>
+    <ul class="news" id="news"></ul>
+  </div>
+</section>
+
+<!-- SSS -->
+<section class="section section-alt" id="sss">
+  <div class="wrap faq-wrap">
+    <header class="section-head">
+      <p class="eyebrow">Sık sorulan sorular</p>
+      <h2>Aklınızdaki sorular</h2>
+      <p>Cevabını bulamadığınız sorular için bize <a href="mailto:iletisim@emeksermaye.com">iletisim@emeksermaye.com</a> adresinden yazabilirsiniz.</p>
+    </header>
+    <div class="faq">
+      <details><summary>Emek Sermaye nedir?</summary><p>Emek Sermaye, yatırımcıların sermayesini CNC üretim kapasitesiyle buluşturan bir platformdur. Yatırımcı tesislerimizdeki bir slota CNC tezgâhı alır. Tezgâhı biz işletiriz, makine siparişler için parça üretir ve kazanç makine sahibine kalır.</p></details>
+      <details><summary>Makinenin sahibi kim olur?</summary><p>Makinenin sahibi yatırımcıdır. Emek Sermaye makineyi kendi tesisinde kurar, işletir ve bakımını yapar. Bu hizmetin karşılığı dakika başı işletme ücretidir.</p></details>
+      <details><summary>Ne kadar sermaye gerekir?</summary><p>Toplam yatırım makine tipine göre değişir. Nakliye ve kurulum dahil 3 eksen tezgâh <b data-live="min-invest">$109.500</b> ile başlar. Siparişte %30 ön ödeme yapılır, kalan %70 makine teslim edildiğinde ödenir.</p></details>
+      <details><summary>Kazancım nasıl hesaplanır?</summary><p>Makinenin çalıştığı her dakika için müşteriden dakika ücreti alınır. Bu tutardan işletme ücreti ve platform payı düşülür, kalan tutar sizindir. Platform payı işi siz bulduysanız %5, platform bulduysa %20'dir. Hesabın tüm kalemlerini platformda dakika bazında görürsünüz.</p></details>
+      <details><summary>İşletme ücretine neler dahil?</summary><p>Operatör, elektrik, periyodik bakım ve servis, kesici takım ve sarf malzeme, tesis kirası ve ortak alanlar, makine sigortası ve yönetim. Bu kalemler sadece makinenin çalıştığı dakikalarda kesilir.</p></details>
+      <details><summary>Kendi müşterimi getirebilir miyim?</summary><p>Evet. Kendi müşterinizin işini makinenizin takvimine ekletebilirsiniz. Bu işlerde platform yalnızca işletme ücreti ve %5 hizmet bedeli alır. Boş kalan saatler platformun bulduğu işlerle doldurulur.</p></details>
+      <details><summary>Ne zaman kazanmaya başlarım?</summary><p>Siparişten üretime kadar yaklaşık 107 gün geçer: sipariş 2 gün, üretim ve tedarik yaklaşık 90 gün, sevkiyat 7 gün, kurulum 5 gün, kalibrasyon 3 gün. Makine ilk işe başladığı gün gelir yazmaya başlar.</p></details>
+      <details><summary>Makinem boş kalırsa ne olur?</summary><p>Makine boş kaldığında gelir oluşmaz ve size işletme ücreti de yansımaz. Doluluk oranı kazancınızı en çok etkileyen etkendir. Bu yüzden tesis ortalama dolulukları platformda herkese açık gösterilir.</p></details>
+      <details><summary>Makinemi satabilir veya devredebilir miyim?</summary><p>Makine sizin mülkiyetinizde olduğu için devredilebilir. Devir, başka bir yatırımcıya veya tesis dışına satış şeklinde olabilir. Satış süresi ve fiyatı piyasa koşullarına bağlıdır, bu nedenle likidite riskini değerlendirmenizi öneririz.</p></details>
+      <details><summary>Üretimi ve kazancı nasıl takip ederim?</summary><p>Platformda her makinenin iş takvimini, canlı görüntüsünü ve telemetrisini, günlük ve aylık kazanç dökümünü görürsünüz. Analiz ekranında makine bazında kârlılık ve yatırımın geri dönüşü izlenir.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- BAŞLAYIN -->
+<section class="cta band" id="basla">
+  <div class="wrap cta-inner">
+    <div>
+      <h2>Sermayenizi emekle buluşturun.</h2>
+      <p>Ücretsiz hesap açın, tesisleri ve boş slotları inceleyin. Karar vermeden önce platformu demo verisiyle dilediğiniz kadar gezebilirsiniz.</p>
+    </div>
+    <div class="cta-actions">
+      <a class="btn btn-primary btn-lg" href="platform.html#kayit">Ücretsiz hesap oluştur</a>
+      <a class="btn btn-light btn-lg" href="platform.html">Platformu incele</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ALT BİLGİ -->
+<footer class="site-footer band">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <a class="logo logo-light" href="#ust" aria-label="Emek Sermaye ana sayfa">
+        <svg class="logo-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <rect width="40" height="40" rx="10" style="fill:var(--accent-bright)"/>
+          <path d="M20 6.5 31.7 13.25v13.5L20 33.5 8.3 26.75v-13.5z" style="fill:none;stroke:var(--band);stroke-width:2.4;stroke-linejoin:round"/>
+          <rect x="13.6" y="20.6" width="3.3" height="6.4" rx="1" style="fill:var(--band)"/>
+          <rect x="18.35" y="17.2" width="3.3" height="9.8" rx="1" style="fill:var(--band)"/>
+          <rect x="23.1" y="13.8" width="3.3" height="13.2" rx="1" style="fill:var(--band)"/>
+        </svg>
+        <span class="logo-text"><b>Emek</b> Sermaye</span>
+      </a>
+      <p>Sermaye ile emeğin buluştuğu üretim platformu. CNC tezgâhlarına ortak olun, üretimi ve kazancı canlı izleyin.</p>
+      <p class="footer-mail"><a href="mailto:iletisim@emeksermaye.com">iletisim@emeksermaye.com</a></p>
+    </div>
+    <nav aria-label="Platform">
+      <h3>Platform</h3>
+      <a href="platform.html#fabrikalar">Fabrikalar</a>
+      <a href="platform.html#makinelerim">Makinelerim</a>
+      <a href="platform.html#analiz">Analiz</a>
+      <a href="platform.html#kayit">Hesap oluştur</a>
+    </nav>
+    <nav aria-label="Yatırım">
+      <h3>Yatırım</h3>
+      <a href="#nasil">Nasıl çalışır</a>
+      <a href="#dakika">Getiri modeli</a>
+      <a href="#makineler">Makine seçenekleri</a>
+      <a href="#hesapla">Kazanç hesaplayıcı</a>
+    </nav>
+    <nav aria-label="Destek">
+      <h3>Destek</h3>
+      <a href="#guvence">Güvence ve riskler</a>
+      <a href="#tesisler">Tesislerimiz</a>
+      <a href="#duyurular">Duyurular</a>
+      <a href="#sss">Sık sorulan sorular</a>
+    </nav>
+  </div>
+  <div class="wrap footer-legal">
+    <p>Bu sitede yer alan bilgiler genel bilgilendirme amaçlıdır ve yatırım danışmanlığı kapsamında değildir. Gösterilen doluluk, üretim ve kazanç rakamları örnek ve simülasyon verileridir.</p>
+    <p>© <span data-live="year">2026</span> Emek Sermaye · emeksermaye.com</p>
+  </div>
+</footer>
 
 <script src="assets/config.js"></script>
 <script src="assets/data.js"></script>
-<script src="assets/charts.js"></script>
-<script src="assets/live.js"></script>
 <script src="assets/backend.js"></script>
-<script src="assets/app.js"></script>
-<!--ARTIFACT-END-->
+<script src="assets/site.js"></script>
 </body>
 </html>

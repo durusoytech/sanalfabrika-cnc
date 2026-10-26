@@ -1,0 +1,108 @@
+/* Emek Sermaye · marka tokenları (tanıtım sitesi ve platform ortak kullanır)
+   Düzen fikri: güven veren sakin yüzeyler, derin petrol bantlar ve tek vurgu rengi olarak turkuaz.
+   Renkler: turkuaz (eylem ve marka), derin petrol (başlık ve koyu bantlar), turkuaza çalan nötrler.
+   Yazı: Red Hat Display başlıklar, Red Hat Text gövde, JetBrains Mono ölçü ve kodlar. */
+:root {
+  --bg: #f3f8f8;
+  --surface: #ffffff;
+  --surface-2: #edf5f5;
+  --surface-3: #e0eded;
+  --line: #d2e2e2;
+  --line-strong: #adc6c6;
+  --ink: #0a2a31;
+  --ink-2: #3a5860;
+  --muted: #577780;
+  --accent: #087a80;
+  --accent-strong: #055a5f;
+  --accent-bright: #13a8a5;
+  --accent-ink: #ffffff;
+  --accent-wash: rgba(8, 122, 128, 0.09);
+  --accent-tint: #ddf2f1;
+
+  --band: #06323a;
+  --band-2: #0a4049;
+  --band-ink: #e8f6f5;
+  --band-muted: #a3c9cb;
+  --band-line: rgba(232, 246, 245, 0.14);
+
+  --floor: #dfe8e7;
+  --floor-grid: rgba(10, 42, 49, 0.055);
+  --floor-mark: #d6a300;
+
+  --c-own: #2a78d6;
+  --c-platform: #eb6834;
+  --c-net: #1baf7a;
+  --c-cost: #6250d6;
+  --c-fee: #eda100;
+  --c-gross: #5b6e79;
+  --c-maint: #98a5aa;
+  --on-own: #ffffff;
+  --on-platform: #24120a;
+
+  --s-run: #0ca30c;
+  --s-setup: #e59f00;
+  --s-idle: #8f9ca1;
+  --s-maint: #4a7fbf;
+  --s-proc: #7a5fd0;
+  --good-ink: #0b6b2a;
+
+  --grid: #e1e9e9;
+  --axis: #bccaca;
+
+  --m-body: #d2dcdb;
+  --m-edge: #9cb0af;
+  --m-glass: #a6c6c9;
+  --m-panel: #24393f;
+  --m-table: #7b8f92;
+
+  --cam-bg: #0b1013;
+  --heat-0: #e3ece9; --heat-1: #cde2fb; --heat-2: #9ec5f4; --heat-3: #6da7ec; --heat-4: #3987e5; --heat-5: #256abf; --heat-6: #104281;
+
+  --shadow-1: 0 1px 2px rgba(10, 42, 49, 0.06), 0 6px 18px rgba(10, 42, 49, 0.06);
+  --shadow-2: 0 14px 44px rgba(10, 42, 49, 0.18);
+
+  --font-display: "Red Hat Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-body: "Red Hat Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #051a1e; --surface: #0a242a; --surface-2: #0f2c33; --surface-3: #14363e;
+    --line: #1c3c44; --line-strong: #2a5059;
+    --ink: #e2f1f1; --ink-2: #a3c1c5; --muted: #7c9ea4;
+    --accent: #2bbab5; --accent-strong: #61d2ce; --accent-bright: #2bbab5; --accent-ink: #022226;
+    --accent-wash: rgba(43, 186, 181, 0.13); --accent-tint: #0f3a3d;
+    --band: #03242a; --band-2: #062f36; --band-ink: #e2f1f1; --band-muted: #93b9bc; --band-line: rgba(226, 241, 241, 0.12);
+    --floor: #0d2227; --floor-grid: rgba(226, 241, 241, 0.045); --floor-mark: #a98410;
+    --c-own: #3987e5; --c-platform: #d95926; --c-net: #199e70; --c-cost: #9085e9; --c-fee: #c98500; --c-gross: #8295a0; --c-maint: #56656b;
+    --on-own: #06121f; --on-platform: #1d0c05;
+    --s-run: #22b822; --s-setup: #f2b01e; --s-idle: #6f7f85; --s-maint: #5e93d3; --s-proc: #9a83e6; --good-ink: #3fcf6a;
+    --grid: #17343b; --axis: #2a4c55;
+    --m-body: #26393e; --m-edge: #3f5a61; --m-glass: #0f3139; --m-panel: #0b171a; --m-table: #4f666b;
+    --heat-0: #13292e; --heat-1: #0d366b; --heat-2: #184f95; --heat-3: #256abf; --heat-4: #3987e5; --heat-5: #6da7ec; --heat-6: #9ec5f4;
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 18px rgba(0, 0, 0, 0.25);
+    --shadow-2: 0 16px 48px rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #051a1e; --surface: #0a242a; --surface-2: #0f2c33; --surface-3: #14363e;
+  --line: #1c3c44; --line-strong: #2a5059;
+  --ink: #e2f1f1; --ink-2: #a3c1c5; --muted: #7c9ea4;
+  --accent: #2bbab5; --accent-strong: #61d2ce; --accent-bright: #2bbab5; --accent-ink: #022226;
+  --accent-wash: rgba(43, 186, 181, 0.13); --accent-tint: #0f3a3d;
+  --band: #03242a; --band-2: #062f36; --band-ink: #e2f1f1; --band-muted: #93b9bc; --band-line: rgba(226, 241, 241, 0.12);
+  --floor: #0d2227; --floor-grid: rgba(226, 241, 241, 0.045); --floor-mark: #a98410;
+  --c-own: #3987e5; --c-platform: #d95926; --c-net: #199e70; --c-cost: #9085e9; --c-fee: #c98500; --c-gross: #8295a0; --c-maint: #56656b;
+  --on-own: #06121f; --on-platform: #1d0c05;
+  --s-run: #22b822; --s-setup: #f2b01e; --s-idle: #6f7f85; --s-maint: #5e93d3; --s-proc: #9a83e6; --good-ink: #3fcf6a;
+  --grid: #17343b; --axis: #2a4c55;
+  --m-body: #26393e; --m-edge: #3f5a61; --m-glass: #0f3139; --m-panel: #0b171a; --m-table: #4f666b;
+  --heat-0: #13292e; --heat-1: #0d366b; --heat-2: #184f95; --heat-3: #256abf; --heat-4: #3987e5; --heat-5: #6da7ec; --heat-6: #9ec5f4;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 18px rgba(0, 0, 0, 0.25);
+  --shadow-2: 0 16px 48px rgba(0, 0, 0, 0.55);
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }
+body { background: var(--bg); color: var(--ink); }

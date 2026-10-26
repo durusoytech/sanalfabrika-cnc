@@ -1,4 +1,4 @@
-/* SanalFabrika · Supabase bağlantı katmanı
+/* Emek Sermaye · Supabase bağlantı katmanı
    SF_CONFIG doluysa veriyi veritabanından okur, giriş/kayıt ve satın almayı yönetir.
    Boşsa hiçbir şey yapmaz ve site demo modunda kalır. */
 (function () {

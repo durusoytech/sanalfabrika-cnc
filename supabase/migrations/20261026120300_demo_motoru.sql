@@ -1,4 +1,4 @@
--- SanalFabrika · 4/4 · Demo veri motoru
+-- Emek Sermaye · 4/4 · Demo veri motoru
 -- Gerçek makine bağlantısı gelene kadar iş takvimini simüle eder.
 -- "demo" şeması Data API'ye açık değildir; yalnızca veritabanı içinden çalışır.
 
@@ -173,7 +173,7 @@ do $$
 begin
   if exists (select 1 from pg_available_extensions where name = 'pg_cron') then
     create extension if not exists pg_cron with schema pg_catalog;
-    perform cron.unschedule(jobid) from cron.job where jobname = 'sanalfabrika-demo';
-    perform cron.schedule('sanalfabrika-demo', '7 * * * *', 'select demo.fill_all()');
+    perform cron.unschedule(jobid) from cron.job where jobname = 'emeksermaye-demo';
+    perform cron.schedule('emeksermaye-demo', '7 * * * *', 'select demo.fill_all()');
   end if;
 end $$;

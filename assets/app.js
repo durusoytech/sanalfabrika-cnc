@@ -1,4 +1,4 @@
-/* SanalFabrika · uygulama: görünümler, etkileşimler, canlı güncelleme */
+/* Emek Sermaye · uygulama: görünümler, etkileşimler, canlı güncelleme */
 (function () {
   'use strict';
   const SF = window.SF, Charts = window.Charts, Live = window.Live;
@@ -137,7 +137,7 @@
     else if (state.view === 'fabrikalar') main.innerHTML = viewFactories();
     else if (state.view === 'makinelerim') main.innerHTML = viewMine();
     else { main.innerHTML = viewAnalytics(); drawAnalyticsCharts(); }
-    document.title = 'SanalFabrika CNC';
+    document.title = 'Emek Sermaye Platform';
   }
 
   /* =========================================================
@@ -1177,7 +1177,7 @@
     const a = state.auth; if (!a) return;
     const up = a.mode === 'signup';
     $('#modal-root').innerHTML = `<div class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-      <div class="modal-head"><div class="modal-head-top"><div><p class="eyebrow">SanalFabrika hesabı</p><h2 id="auth-title">${up ? 'Hesap oluştur' : 'Giriş yap'}</h2></div>
+      <div class="modal-head"><div class="modal-head-top"><div><p class="eyebrow">Emek Sermaye hesabı</p><h2 id="auth-title">${up ? 'Hesap oluştur' : 'Giriş yap'}</h2></div>
         <button class="icon-btn" data-action="auth-close" aria-label="Kapat">${ICON.close}</button></div>
         ${a.note ? `<p>${esc(a.note)}</p>` : ''}</div>
       <form class="modal-body auth-form" id="auth-form" novalidate>
@@ -1386,6 +1386,14 @@
     return VIEWS.includes(h) ? h : 'fabrikalar';
   }
   window.addEventListener('hashchange', () => { const v = fromHash(); if (v !== state.view) setView(v, false); });
+  // Tanıtım sitesinden gelen #kayit ve #giris bağlantıları
+  const authIntent = { kayit: 'signup', giris: 'signin' }[(location.hash || '').slice(1)] || null;
+  function handleAuthIntent() {
+    if (!authIntent) return;
+    try { history.replaceState(null, '', '#fabrikalar'); } catch (e) { /* önizleme */ }
+    if (SF.mode === 'live') { if (!SF.ME.signedIn) openAuth(authIntent); }
+    else toast('Şu an demo modundasınız. Veritabanı bağlandığında hesap oluşturma açılacak.');
+  }
   state.view = fromHash();
   if (window.Backend && Backend.enabled) {
     state.booting = true;
@@ -1397,11 +1405,11 @@
       }).catch(err => toast(err.message));
     };
     Backend.init().then(() => {
-      state.booting = false; render(); tickTop();
+      state.booting = false; render(); tickTop(); handleAuthIntent();
     }).catch(err => {
       state.booting = false; state.bootError = err.message; render(); tickTop();
       toast('Veritabanına bağlanılamadı. Demo verisi gösteriliyor.');
-      console.error('SanalFabrika:', err);
+      console.error('Emek Sermaye:', err);
     });
     // Diğer yatırımcıların siparişleri ve yeni işler için düzenli yenileme
     setInterval(() => {
@@ -1413,6 +1421,7 @@
     }, 180000);
   } else {
     render();
+    handleAuthIntent();
   }
   tickTop();
 })();

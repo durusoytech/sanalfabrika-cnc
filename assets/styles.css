@@ -1,4 +1,4 @@
-/* SanalFabrika · bileşen stilleri (renkler index.html içindeki tokenlardan gelir) */
+/* Emek Sermaye · bileşen stilleri (renkler index.html içindeki tokenlardan gelir) */
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
@@ -37,7 +37,8 @@ main.wrap { padding-block: 24px 72px; display: grid; gap: 22px; outline: none; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
 .brand-mark { width: 32px; height: 32px; flex: none; }
 .brand-text { display: grid; line-height: 1.05; }
-.brand-text b { font-family: var(--font-display); font-weight: 700; font-size: 19px; letter-spacing: 0.01em; }
+.brand-text b { font-family: var(--font-display); font-weight: 800; font-size: 19px; letter-spacing: -0.01em; }
+.brand-text b em { font-style: normal; font-weight: 500; color: var(--accent); }
 .brand-text small { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
 .nav { display: flex; gap: 4px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
 .nav-link {

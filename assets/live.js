@@ -1,4 +1,4 @@
-/* SanalFabrika · canlı izleme (kamera görüntüsü simülasyonu + telemetri)
+/* Emek Sermaye · canlı izleme (kamera görüntüsü simülasyonu + telemetri)
    Görüntü temsilidir: takım yolu her çevrimde döngüye girer, parça sayısı ve
    çevrim ilerlemesi ise makinenin gerçek iş takviminden hesaplanır. */
 (function () {

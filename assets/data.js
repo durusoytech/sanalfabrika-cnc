@@ -1,4 +1,4 @@
-/* SanalFabrika · veri modeli, iş takvimi simülasyonu ve gelir hesabı.
+/* Emek Sermaye · veri modeli, iş takvimi simülasyonu ve gelir hesabı.
    Tüm veriler demo amaçlıdır. Makine takvimleri, sayfa açıldığı ana göre
    tohumlanmış (deterministik) bir rastgele üreteçle oluşturulur. */
 (function () {

@@ -1,4 +1,4 @@
-/* SanalFabrika · küçük SVG grafik kütüphanesi (yığılmış sütun, trend sütunu, ipucu) */
+/* Emek Sermaye · küçük SVG grafik kütüphanesi (yığılmış sütun, trend sütunu, ipucu) */
 (function () {
   'use strict';
 

@@ -1,4 +1,4 @@
--- SanalFabrika · 2/4 · İş kuralları (fonksiyonlar)
+-- Emek Sermaye · 2/4 · İş kuralları (fonksiyonlar)
 -- Para hesabı: brüt = dakika × dakika ücreti; işletme = dakika × işletme ücreti;
 -- platform payı = brüt × kaynak oranı; net = brüt − işletme − platform payı.
 

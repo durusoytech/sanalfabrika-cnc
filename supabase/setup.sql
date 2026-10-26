@@ -1,10 +1,10 @@
--- SanalFabrika · Supabase kurulum dosyası
+-- Emek Sermaye · Supabase kurulum dosyası
 -- Bu dosya scripts/build-setup-sql.mjs ile üretilir, doğrudan düzenlemeyin.
 -- Kullanım: Supabase panelinde SQL Editor > New query > bu dosyanın tamamını yapıştırın > Run.
 -- Boş bir projede yalnızca bir kez çalıştırın.
 
 -- >>> 20261026120000_sema.sql
--- SanalFabrika · 1/4 · Temel şema ve referans verileri
+-- Emek Sermaye · 1/4 · Temel şema ve referans verileri
 -- Supabase üzerinde çalışır; auth.users ve auth.uid() Supabase Auth'tan gelir.
 
 create schema if not exists extensions;
@@ -183,7 +183,7 @@ values
    'Tek bağlamada karmaşık geometri, en yüksek dakika ücreti.');
 
 -- >>> 20261026120100_is_kurallari.sql
--- SanalFabrika · 2/4 · İş kuralları (fonksiyonlar)
+-- Emek Sermaye · 2/4 · İş kuralları (fonksiyonlar)
 -- Para hesabı: brüt = dakika × dakika ücreti; işletme = dakika × işletme ücreti;
 -- platform payı = brüt × kaynak oranı; net = brüt − işletme − platform payı.
 
@@ -564,7 +564,7 @@ begin
 end $$;
 
 -- >>> 20261026120200_guvenlik.sql
--- SanalFabrika · 3/4 · Güvenlik: satır bazlı erişim (RLS) ve açık yetkiler
+-- Emek Sermaye · 3/4 · Güvenlik: satır bazlı erişim (RLS) ve açık yetkiler
 -- Supabase, 30 Mayıs 2026'dan sonra açılan projelerde (mevcut projelerde 30 Ekim 2026'dan itibaren)
 -- tabloları Data API'ye otomatik açmıyor. Bu yüzden her yetki burada açıkça veriliyor.
 
@@ -667,7 +667,7 @@ grant execute on all functions in schema public to service_role;
 -- public.link_demo_portfolio ve public.handle_new_user bilerek anon ve authenticated rollerine açılmadı.
 
 -- >>> 20261026120300_demo_motoru.sql
--- SanalFabrika · 4/4 · Demo veri motoru
+-- Emek Sermaye · 4/4 · Demo veri motoru
 -- Gerçek makine bağlantısı gelene kadar iş takvimini simüle eder.
 -- "demo" şeması Data API'ye açık değildir; yalnızca veritabanı içinden çalışır.
 
@@ -842,13 +842,13 @@ do $$
 begin
   if exists (select 1 from pg_available_extensions where name = 'pg_cron') then
     create extension if not exists pg_cron with schema pg_catalog;
-    perform cron.unschedule(jobid) from cron.job where jobname = 'sanalfabrika-demo';
-    perform cron.schedule('sanalfabrika-demo', '7 * * * *', 'select demo.fill_all()');
+    perform cron.unschedule(jobid) from cron.job where jobname = 'emeksermaye-demo';
+    perform cron.schedule('emeksermaye-demo', '7 * * * *', 'select demo.fill_all()');
   end if;
 end $$;
 
 -- >>> seed.sql
--- SanalFabrika · Başlangıç verisi (demo)
+-- Emek Sermaye · Başlangıç verisi (demo)
 -- Migration'lardan sonra bir kez çalıştırılır. Tüm tarihler çalıştırıldığı ana göre hesaplanır.
 
 insert into public.factories (id, code, name, short_name, city, lead, area_m2, power_kva, operators_per_shift, status, open_at, since_label, sort) values

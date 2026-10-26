@@ -1,4 +1,4 @@
--- SanalFabrika · 1/4 · Temel şema ve referans verileri
+-- Emek Sermaye · 1/4 · Temel şema ve referans verileri
 -- Supabase üzerinde çalışır; auth.users ve auth.uid() Supabase Auth'tan gelir.
 
 create schema if not exists extensions;

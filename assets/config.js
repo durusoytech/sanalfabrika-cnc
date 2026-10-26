@@ -1,4 +1,4 @@
-/* SanalFabrika · bağlantı ayarları
+/* Emek Sermaye · bağlantı ayarları
    Boş bırakılırsa site tarayıcı içinde üretilen demo verisiyle çalışır.
    Supabase panelinden alınan Project URL ve publishable key buraya yazılır.
    Publishable key herkese açık olacak şekilde tasarlanmıştır; verinin güvenliğini

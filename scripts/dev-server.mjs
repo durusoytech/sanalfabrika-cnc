@@ -10,11 +10,11 @@ import { createDb, asUser, ROOT } from './supabase-shim.mjs';
 
 const PORT = Number(process.env.PORT || 8792);
 const KEY = 'sb_publishable_yerel_gelistirme';
-const DEMO_USER = { email: 'demo@sanalfabrika.test', password: 'demo1234', name: 'Deniz Aksoy' };
+const DEMO_USER = { email: 'demo@emeksermaye.test', password: 'demo1234', name: 'Deniz Aksoy' };
 
 const t0 = Date.now();
 const db = await createDb();
-const hash = pw => createHash('sha256').update('sanalfabrika:' + pw).digest('hex');
+const hash = pw => createHash('sha256').update('emeksermaye:' + pw).digest('hex');
 await db.query(`insert into auth.users (email, encrypted_password, raw_user_meta_data) values ($1, $2, $3)`,
   [DEMO_USER.email, hash(DEMO_USER.password), JSON.stringify({ full_name: DEMO_USER.name })]);
 await db.query(`select public.link_demo_portfolio($1)`, [DEMO_USER.email]);
@@ -200,6 +200,6 @@ createServer(async (req, res) => {
     json(res, 500, { message: e.message });
   }
 }).listen(PORT, '127.0.0.1', () => {
-  console.log(`SanalFabrika yerel sunucu: http://localhost:${PORT}`);
+  console.log(`Emek Sermaye yerel sunucu: http://localhost:${PORT}`);
   console.log(`Demo giriş: ${DEMO_USER.email} / ${DEMO_USER.password}`);
 });

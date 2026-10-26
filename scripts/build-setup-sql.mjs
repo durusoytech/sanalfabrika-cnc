@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { ROOT, migrationFiles } from './supabase-shim.mjs';
 
 const parts = [
-  '-- SanalFabrika · Supabase kurulum dosyası',
+  '-- Emek Sermaye · Supabase kurulum dosyası',
   '-- Bu dosya scripts/build-setup-sql.mjs ile üretilir, doğrudan düzenlemeyin.',
   '-- Kullanım: Supabase panelinde SQL Editor > New query > bu dosyanın tamamını yapıştırın > Run.',
   '-- Boş bir projede yalnızca bir kez çalıştırın.',

@@ -1,4 +1,4 @@
-# SanalFabrika · Gerçek veritabanı kurulumu
+# Emek Sermaye · Gerçek veritabanı kurulumu
 
 Bu rehber, siteyi tarayıcıdaki demo verisinden gerçek bir Postgres veritabanına geçirir. Her şey ücretsiz planlarda çalışır ve kredi kartı gerekmez.
 
@@ -8,7 +8,8 @@ Ayrı bir Node.js sunucusu yok. Sistem iki parçadan oluşur:
 
 ```
 Tarayıcı                          GitHub Pages (ücretsiz)
-  └─ index.html + assets/*        Statik site: arayüz, grafikler, canlı izleme
+  ├─ index.html                   Tanıtım sitesi (emeksermaye.com)
+  └─ platform.html + assets/*     Yatırımcı platformu: fabrikalar, makineler, analiz
         │
         │  HTTPS (supabase-js)
         ▼
@@ -71,7 +72,34 @@ npx firebase-tools login
 npx firebase-tools deploy --only hosting --project PROJE-KIMLIGINIZ
 ```
 
-4. Komutun verdiği `https://PROJE-KIMLIGINIZ.web.app` adresini Supabase'de **Authentication > URL Configuration** sayfasına Site URL ve Redirect URL olarak ekleyin.
+4. Komutun verdiği `https://PROJE-KIMLIGINIZ.web.app` adresini Supabase'de **Authentication > URL Configuration** sayfasına ekleyin. Site URL olarak ana adresi, Redirect URL olarak `…/platform.html` adresini yazın.
+
+## emeksermaye.com alan adını bağlama
+
+Site iki sayfadan oluşur: ana sayfa (`index.html`) tanıtım sitesidir, `platform.html` ise yatırımcı platformudur. Alan adı bağlandığında adresler şöyle olur:
+
+| Adres | Sayfa |
+|---|---|
+| `https://emeksermaye.com` | Tanıtım sitesi |
+| `https://emeksermaye.com/platform.html` | Yatırımcı platformu |
+
+**Alan adını sitenin yayınlandığı yere göre yönlendirin, ikisine birden yönlendirmeyin.**
+
+### Firebase Hosting ile (gerçek kullanıcılar için önerilen)
+
+1. Firebase konsolunda **Hosting > Add custom domain** deyip `emeksermaye.com` yazın.
+2. Firebase'in verdiği TXT ve A kayıtlarını alan adını aldığınız firmanın DNS panelinden ekleyin.
+3. `www.emeksermaye.com` için de aynı adımı tekrarlayın veya ana adrese yönlendirin.
+4. Doğrulama ve SSL sertifikası genellikle birkaç saat içinde tamamlanır.
+
+### GitHub Pages ile (prototip için)
+
+1. Alan adı firmanızın DNS panelinde ana alan adına şu dört A kaydını ekleyin: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`.
+2. `www` için `durusoytech.github.io` değerine işaret eden bir CNAME kaydı ekleyin.
+3. DNS yayıldıktan sonra GitHub'da depo **Settings > Pages > Custom domain** alanına `emeksermaye.com` yazıp kaydedin ve **Enforce HTTPS** seçeneğini açın.
+4. Başkasının alan adınızı GitHub'da kullanamaması için hesabınızın **Settings > Pages** bölümünden alan adını doğrulamanız önerilir.
+
+DNS kayıtları girilmeden GitHub'daki Custom domain alanını doldurmayın. Doldurursanız site çalışmayan adrese yönlenir.
 
 ## Kurulum adımları
 
@@ -93,8 +121,8 @@ Bu dosyayı boş bir projede yalnızca bir kez çalıştırın. İkinci kez çal
 
 **Authentication > URL Configuration** sayfasında:
 
-- **Site URL:** sitenin yayınlandığı adres. GitHub Pages için `https://durusoytech.github.io/sanalfabrika-cnc/`, Firebase Hosting için `https://PROJE-KIMLIGINIZ.web.app`.
-- **Redirect URLs** listesine aynı adresi ekleyin. İki yerde birden yayınlıyorsanız ikisini de ekleyin.
+- **Site URL:** sitenin ana adresi. Alan adı bağlandıysa `https://emeksermaye.com`, bağlanmadıysa `https://durusoytech.github.io/sanalfabrika-cnc/`.
+- **Redirect URLs:** platform sayfasının adresi, örneğin `https://emeksermaye.com/platform.html`. E-posta onay bağlantısı kullanıcıyı buraya geri getirir. Birden fazla adreste yayınlıyorsanız hepsini ekleyin.
 
 E-posta onayı varsayılan olarak açıktır. Yeni kullanıcı kayıttan sonra e-postasındaki bağlantıya tıklamadan giriş yapamaz. Supabase'in yerleşik e-posta servisi saatte birkaç e-postayla sınırlıdır. Gerçek kullanıcılara açılmadan önce **Authentication > Emails > SMTP Settings** bölümünden kendi e-posta servisinizi bağlayın.
 
@@ -113,6 +141,8 @@ window.SF_CONFIG = {
 ```
 
 3. Değişikliği GitHub'a gönderin. Bir iki dakika içinde site canlı veriyle açılır ve sağ üstte **Canlı veri** yazar.
+
+Hem tanıtım sitesi hem platform aynı ayarı kullanır. Tanıtım sitesindeki tesis rakamları da bu bağlantıyla canlı veriden okunur.
 
 Publishable key herkese açık olacak şekilde tasarlanmıştır ve depoya yazılabilir. **Secret key** (`sb_secret_` ile başlar) ise hiçbir zaman siteye veya depoya yazılmaz.
 
@@ -150,7 +180,7 @@ Gerçek işlere geçtiğinizde simülasyonu kapatın:
 ```sql
 update public.app_settings set value = 'false' where key = 'simulate_jobs';
 update public.machines set is_demo = false;
-select cron.unschedule('sanalfabrika-demo');
+select cron.unschedule('emeksermaye-demo');
 ```
 
 ## Ücretsiz plan sınırları
@@ -178,7 +208,7 @@ Veritabanı testleri migration'ları bellekte çalışan bir Postgres'e kurar, a
 npm run dev
 ```
 
-Yerel sunucu http://localhost:8792 adresinde açılır. Supabase'in sitenin kullandığı kısmını taklit eder ve her açılışta veritabanını sıfırdan kurar. Test hesabı: `demo@sanalfabrika.test` / `demo1234`.
+Yerel sunucu http://localhost:8792 adresinde açılır. Supabase'in sitenin kullandığı kısmını taklit eder ve her açılışta veritabanını sıfırdan kurar. Test hesabı: `demo@emeksermaye.test` / `demo1234`.
 
 Migration dosyalarını değiştirdikten sonra tek parça dosyayı yeniden üretin:
 
