@@ -123,6 +123,7 @@ body { background: var(--bg); color: var(--ink); }
       <a href="#analiz" data-action="view" data-view="analiz" class="nav-link">Analiz</a>
     </nav>
     <div class="top-right">
+      <span class="mode-chip" id="mode-chip" data-mode="demo" title="Verinin nereden geldiği">Demo verisi</span>
       <div class="clock mono" id="clock" aria-live="off"></div>
       <div class="top-net" title="Bu ay şu ana kadarki net kârınız">
         <span>Bu ay net</span><b id="top-net">—</b>
@@ -130,7 +131,10 @@ body { background: var(--bg); color: var(--ink); }
       <button class="icon-btn" id="theme-btn" data-action="theme" aria-label="Temayı değiştir" title="Açık / koyu tema">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" fill="currentColor"/></svg>
       </button>
-      <div class="avatar" title="Demo yatırımcı hesabı">DA</div>
+      <div class="account">
+        <button class="avatar" id="account-btn" data-action="account" aria-haspopup="menu" aria-expanded="false" title="Hesap">DA</button>
+        <div class="account-menu" id="account-menu" role="menu" hidden></div>
+      </div>
     </div>
   </div>
 </header>
@@ -144,9 +148,11 @@ body { background: var(--bg); color: var(--ink); }
 <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
+<script src="assets/config.js"></script>
 <script src="assets/data.js"></script>
 <script src="assets/charts.js"></script>
 <script src="assets/live.js"></script>
+<script src="assets/backend.js"></script>
 <script src="assets/app.js"></script>
 <!--ARTIFACT-END-->
 </body>

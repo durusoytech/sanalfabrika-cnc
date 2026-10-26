@@ -701,3 +701,36 @@ table.data tbody tr:hover td { background: var(--surface-2); }
   .page-head .seg { width: 100%; }
   .page-head .seg button { flex: 1; }
 }
+
+/* ---------- hesap, giriş ve veri modu ---------- */
+.mode-chip { font-size: 11.5px; font-weight: 600; letter-spacing: .04em; padding: 4px 9px; border-radius: 999px; white-space: nowrap;
+  background: var(--surface-3); color: var(--ink-2); border: 1px solid var(--line); }
+.mode-chip[data-mode="live"] { background: color-mix(in srgb, var(--s-run) 14%, transparent); color: var(--good-ink); border-color: color-mix(in srgb, var(--s-run) 35%, transparent); }
+@media (max-width: 520px) { .mode-chip { display: none; } }
+.account { position: relative; }
+button.avatar { cursor: pointer; padding: 0; font: inherit; font-weight: 700; font-size: 13px; }
+.account-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 50; width: 260px; max-width: calc(100vw - 32px);
+  background: var(--surface); border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: var(--shadow-2); padding: 6px; display: grid; gap: 2px; }
+.am-head { display: grid; gap: 2px; padding: 8px 10px 10px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+.am-head b { font-size: 14.5px; }
+.am-head span { font-size: 12px; color: var(--muted); }
+.am-head small { font-size: 12.5px; color: var(--ink-2); overflow-wrap: anywhere; }
+.am-item { text-align: left; border: 0; background: transparent; padding: 8px 10px; border-radius: 8px; font-weight: 600; font-size: 14px; }
+.am-item:hover { background: var(--surface-2); }
+.am-note { font-size: 13px; color: var(--ink-2); padding: 4px 10px 8px; }
+
+.modal-sm { width: min(440px, 100%); }
+.auth-form { gap: 14px; }
+.field { display: grid; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--ink-2); }
+.field input { font: inherit; font-weight: 500; color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px; padding: 10px 12px; width: 100%; }
+.field input:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+.field small { font-weight: 500; font-size: 12px; }
+.form-error { font-size: 13.5px; color: var(--ink); background: color-mix(in srgb, #d03b3b 12%, transparent); border: 1px solid color-mix(in srgb, #d03b3b 40%, transparent); padding: 9px 12px; border-radius: 10px; flex: 1 1 260px; }
+.form-info { font-size: 13.5px; color: var(--ink); background: var(--accent-wash); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); padding: 9px 12px; border-radius: 10px; }
+.auth-switch { font-size: 13.5px; text-align: center; }
+.link-btn { border: 0; background: none; padding: 0; color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+
+.empty { display: grid; justify-items: center; text-align: center; gap: 12px; padding: 44px 20px; max-width: 640px; margin: 0 auto; width: 100%; }
+.empty > svg { width: 30px; height: 30px; color: var(--muted); }
+.empty p { max-width: 52ch; }
+.spinner { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--accent); animation: spin .9s linear infinite; }

@@ -131,7 +131,10 @@
     $$('.nav-link').forEach(a => a.setAttribute('aria-current', a.dataset.view === state.view ? 'page' : 'false'));
     const main = $('#view');
     Charts.Tip.hide();
-    if (state.view === 'fabrikalar') main.innerHTML = viewFactories();
+    syncAccount();
+    if (state.booting) { main.innerHTML = loadingHTML(); return; }
+    if (SF.mode === 'live' && !SF.ME.signedIn && state.view !== 'fabrikalar') main.innerHTML = signInPromptHTML(state.view);
+    else if (state.view === 'fabrikalar') main.innerHTML = viewFactories();
     else if (state.view === 'makinelerim') main.innerHTML = viewMine();
     else { main.innerHTML = viewAnalytics(); drawAnalyticsCharts(); }
     document.title = 'SanalFabrika CNC';
@@ -604,7 +607,7 @@
       body = `<div class="success"><span class="success-badge">${ICON.check}</span>
           <div style="display:grid;gap:4px"><h3>${m.id} · ${m.model} sizin adınıza rezerve edildi</h3><p class="ink2">Makine tahminen <b>${fFull.format(p.readyAt)}</b> tarihinde üretime hazır olacak. Adımları Makinelerim sayfasından takip edebilirsiniz.</p></div></div>
         ${timelineHTML(p.steps, p.idx, Date.now())}`;
-      foot = `<p class="note">${ICON.info}<span>Bu bir demo arayüzdür. Gerçek ödeme alınmaz, sipariş yalnızca bu oturumda görünür.</span></p>
+      foot = `<p class="note">${ICON.info}<span>${SF.mode === 'live' ? 'Sipariş veritabanına kaydedildi. Ödeme entegrasyonu henüz bağlı değil, tahsilat yapılmaz.' : 'Bu bir demo arayüzdür. Gerçek ödeme alınmaz, sipariş yalnızca bu oturumda görünür.'}</span></p>
         <div class="modal-foot-btns"><button class="btn" data-action="wiz-close">Fabrikaya dön</button><button class="btn btn-primary" data-action="wiz-goto-mine">Makinelerime git</button></div>`;
     } else if (w.step === 1) {
       body = `<div class="section-title"><h3>Hangi makineyi kuralım?</h3><p>Tahmini net, %70 doluluk ve karma iş modeline göredir.</p></div>
@@ -674,8 +677,8 @@
             ${timelineHTML(plan, 0, Date.now())}
           </div>
         </div>`;
-      foot = `<p class="note">${ICON.info}<span>Demo: gerçek ödeme alınmaz.</span></p>
-        <div class="modal-foot-btns"><button class="btn" data-action="wiz-back">Geri</button><button class="btn btn-primary" data-action="wiz-confirm" ${w.agree ? '' : 'disabled'}>Siparişi onayla</button></div>`;
+      foot = `${w.error ? `<p class="form-error" role="alert">${esc(w.error)}</p>` : `<p class="note">${ICON.info}<span>${SF.mode === 'live' ? 'Sipariş veritabanına kaydedilir. Ödeme adımı henüz bağlı değil.' : 'Demo: gerçek ödeme alınmaz.'}</span></p>`}
+        <div class="modal-foot-btns"><button class="btn" data-action="wiz-back" ${w.busy ? 'disabled' : ''}>Geri</button><button class="btn btn-primary" data-action="wiz-confirm" ${w.agree && !w.busy ? '' : 'disabled'}>${w.busy ? 'Kaydediliyor…' : 'Siparişi onayla'}</button></div>`;
     }
     $('#modal-root').innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="wiz-title">${head}<div class="modal-body">${body}</div><div class="modal-foot">${foot}</div></div>`;
   }
@@ -742,7 +745,7 @@
       <div class="card kpi"><span>Üretilen parça</span><b>${num(s.parts)}</b><small>${num(s.own.parts)} kendi işi · ${num(s.platform.parts)} platform</small></div>
       <div class="card kpi"><span>Doluluk</span><b>${pct(s.util)}</b><small>${hrs(s.minutes)} kesim ve ayar</small></div>
       <div class="card kpi"><span>İşletme ve platform payı</span><b>${usd(s.op + s.fee)}</b><small>${usd(s.op)} işletme · ${usd(s.fee)} platform</small></div>
-      <div class="card kpi"><span>Yatırım geri dönüşü</span><b>${pct(back / invest)}</b><small>${usdC(back)} / ${usdC(invest)} toplam</small></div>`;
+      <div class="card kpi"><span>Yatırım geri dönüşü</span><b>${pct(invest ? back / invest : 0)}</b><small>${usdC(back)} / ${usdC(invest)} toplam</small></div>`;
   }
 
   function machineCardHTML(m) {
@@ -861,6 +864,7 @@
 
   function viewMine() {
     const mine = SF.myMachines();
+    if (!mine.length) return emptyStateHTML('Makinelerim', 'Henüz makineniz yok', 'Fabrikalar sayfasında kesikli çizgili boş bir slot seçerek ilk CNC makinenizi alabilirsiniz. Sipariş verdiğiniz makine burada tedarik adımlarıyla birlikte görünür.', 'Boş slotları gör', 'fabrikalar');
     const active = mine.filter(m => !m.proc).length, proc = mine.length - active;
     const order = mine.slice().sort((x, y) => (x.proc - y.proc) || (y.isNew - x.isNew));
     return `
@@ -940,6 +944,9 @@
   const ttRows = rows => rows.map(r => r.join('|')).join(';;');
 
   function viewAnalytics() {
+    if (!anActive().length) return emptyStateHTML('Analiz', 'Analiz için üretimde bir makineniz olmalı', 'Makineniz tedarik ve kurulum aşamasını tamamlayıp iş almaya başladığında gelir, gider ve kârlılık grafikleri burada oluşur.', 'Makinelerime git', 'makinelerim');
+    if (state.an.machine !== 'all' && !anActive().some(m => m.id === state.an.machine)) state.an.machine = 'all';
+    if (!monthOptions().includes(state.an.month)) state.an.month = SF.startOfMonth(Date.now());
     const D = analyticsData();
     const { s, ps, planned, isCur } = D;
     const mopts = monthOptions();
@@ -1081,7 +1088,7 @@
   }
 
   function drawAnalyticsCharts() {
-    if (state.view !== 'analiz') return;
+    if (state.view !== 'analiz' || (!$('#ch-daily') && !$('#ch-trend'))) return;
     const D = analyticsData();
     const daily = $('#ch-daily');
     if (daily) {
@@ -1105,6 +1112,115 @@
   }
 
   /* =========================================================
+     HESAP VE GİRİŞ
+     ========================================================= */
+  function loadingHTML() {
+    return `<section class="empty"><div class="spinner" aria-hidden="true"></div><h2>Veritabanına bağlanılıyor</h2><p class="muted">Tesisler, makineler ve iş takvimleri yükleniyor.</p></section>`;
+  }
+  function emptyStateHTML(title, head, text, cta, view) {
+    return `<section class="page-head"><div><h1>${esc(title)}</h1></div></section>
+      <section class="empty card"><h2>${esc(head)}</h2><p class="ink2">${esc(text)}</p>
+        <button class="btn btn-primary" data-action="view" data-view="${view}">${esc(cta)}</button></section>`;
+  }
+  function signInPromptHTML(view) {
+    const what = view === 'analiz' ? 'kârlılık analizinizi' : 'makinelerinizi ve kazancınızı';
+    return `<section class="page-head"><div><h1>${view === 'analiz' ? 'Analiz' : 'Makinelerim'}</h1></div></section>
+      <section class="empty card">${ICON.lock}<h2>Giriş yapın</h2>
+        <p class="ink2">${what.charAt(0).toLocaleUpperCase('tr-TR') + what.slice(1)} görmek için hesabınıza giriş yapın. Fabrikaları ve makine takvimlerini giriş yapmadan da gezebilirsiniz.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+          <button class="btn btn-primary" data-action="auth-open" data-mode="signin">Giriş yap</button>
+          <button class="btn" data-action="auth-open" data-mode="signup">Hesap oluştur</button></div></section>`;
+  }
+
+  function syncAccount() {
+    const btn = $('#account-btn'), chip = $('#mode-chip');
+    const live = SF.mode === 'live';
+    chip.textContent = live ? 'Canlı veri' : (window.Backend && Backend.enabled && state.bootError ? 'Bağlantı yok · demo' : 'Demo verisi');
+    chip.dataset.mode = live ? 'live' : 'demo';
+    if (live && !SF.ME.signedIn) {
+      btn.className = 'btn btn-sm btn-primary'; btn.textContent = 'Giriş yap'; btn.title = 'Giriş yap veya hesap oluştur';
+    } else {
+      btn.className = 'avatar'; btn.textContent = SF.ME.initials || '?'; btn.title = SF.ME.name ? `${SF.ME.name} · ${SF.ME.code}` : 'Hesap';
+    }
+  }
+  function hideAccountMenu() { const m = $('#account-menu'); m.hidden = true; $('#account-btn').setAttribute('aria-expanded', 'false'); }
+  function toggleAccountMenu() {
+    if (SF.mode === 'live' && !SF.ME.signedIn) { openAuth('signin'); return; }
+    const m = $('#account-menu');
+    if (!m.hidden) { hideAccountMenu(); return; }
+    const live = SF.mode === 'live';
+    const email = live && Backend.user ? Backend.user.email : '';
+    m.innerHTML = `<div class="am-head"><b>${esc(SF.ME.name || 'Yatırımcı')}</b><span class="mono">${esc(SF.ME.code || '')}</span>${email ? `<small>${esc(email)}</small>` : ''}</div>
+      ${live ? '<button class="am-item" role="menuitem" data-action="sign-out">Çıkış yap</button>'
+             : '<p class="am-note">Demo modundasınız. Veriler tarayıcıda üretilir. Gerçek hesaplar için assets/config.js dosyasına Supabase bilgilerini girin.</p>'}`;
+    m.hidden = false;
+    $('#account-btn').setAttribute('aria-expanded', 'true');
+  }
+
+  function openAuth(mode, note) {
+    if (!window.Backend || !Backend.client) { toast('Giriş için veritabanı bağlantısı gerekli.'); return; }
+    if (state.wiz) closeWizard();
+    state.auth = { mode: mode || 'signin', note: note || '', error: '', info: '', busy: false, email: '', name: '', opener: document.activeElement };
+    $('#modal-root').hidden = false;
+    document.body.style.overflow = 'hidden';
+    renderAuth(); focusAuth();
+  }
+  function focusAuth() { setTimeout(() => { const f = $('#auth-name') || $('#auth-email'); if (f) f.focus(); }, 30); }
+  function closeAuth() {
+    const opener = state.auth && state.auth.opener;
+    state.auth = null;
+    $('#modal-root').hidden = true; $('#modal-root').innerHTML = '';
+    if (!state.drawer) document.body.style.overflow = '';
+    if (opener && document.body.contains(opener)) opener.focus();
+  }
+  function renderAuth() {
+    const a = state.auth; if (!a) return;
+    const up = a.mode === 'signup';
+    $('#modal-root').innerHTML = `<div class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <div class="modal-head"><div class="modal-head-top"><div><p class="eyebrow">SanalFabrika hesabı</p><h2 id="auth-title">${up ? 'Hesap oluştur' : 'Giriş yap'}</h2></div>
+        <button class="icon-btn" data-action="auth-close" aria-label="Kapat">${ICON.close}</button></div>
+        ${a.note ? `<p>${esc(a.note)}</p>` : ''}</div>
+      <form class="modal-body auth-form" id="auth-form" novalidate>
+        ${up ? `<label class="field" for="auth-name"><span>Ad soyad</span><input id="auth-name" autocomplete="name" value="${esc(a.name)}" required></label>` : ''}
+        <label class="field" for="auth-email"><span>E-posta</span><input id="auth-email" type="email" autocomplete="email" value="${esc(a.email)}" required></label>
+        <label class="field" for="auth-pass"><span>Şifre</span><input id="auth-pass" type="password" autocomplete="${up ? 'new-password' : 'current-password'}" minlength="6" required>
+          ${up ? '<small class="muted">En az 6 karakter.</small>' : ''}</label>
+        ${a.error ? `<p class="form-error" role="alert">${esc(a.error)}</p>` : ''}
+        ${a.info ? `<p class="form-info" role="status">${esc(a.info)}</p>` : ''}
+        <button class="btn btn-primary" type="submit" ${a.busy ? 'disabled' : ''}>${a.busy ? 'Bekleyin…' : (up ? 'Hesap oluştur' : 'Giriş yap')}</button>
+        <p class="muted auth-switch">${up ? 'Zaten hesabınız var mı?' : 'Hesabınız yok mu?'}
+          <button type="button" class="link-btn" data-action="auth-mode" data-mode="${up ? 'signin' : 'signup'}">${up ? 'Giriş yapın' : 'Ücretsiz hesap oluşturun'}</button></p>
+      </form></div>`;
+  }
+  document.addEventListener('submit', e => {
+    if (e.target.id !== 'auth-form') return;
+    e.preventDefault();
+    const a = state.auth; if (!a || a.busy) return;
+    a.email = $('#auth-email').value.trim();
+    a.name = $('#auth-name') ? $('#auth-name').value.trim() : '';
+    const pw = $('#auth-pass').value;
+    a.info = '';
+    if (!/^\S+@\S+\.\S+$/.test(a.email)) { a.error = 'Geçerli bir e-posta adresi girin.'; renderAuth(); focusAuth(); return; }
+    if (pw.length < 6) { a.error = 'Şifre en az 6 karakter olmalı.'; renderAuth(); focusAuth(); return; }
+    if (a.mode === 'signup' && !a.name) { a.error = 'Adınızı girin.'; renderAuth(); focusAuth(); return; }
+    a.busy = true; a.error = ''; renderAuth();
+    const job = a.mode === 'signup' ? Backend.signUp(a.email, pw, a.name) : Backend.signIn(a.email, pw).then(() => ({}));
+    job.then(res => {
+      if (state.auth !== a) return;
+      if (res && res.needsConfirm) {
+        a.busy = false; a.mode = 'signin';
+        a.info = 'Hesabınız oluşturuldu. E-postanıza gelen onay bağlantısına tıkladıktan sonra giriş yapın.';
+        renderAuth(); return;
+      }
+      closeAuth();
+      toast('Giriş yapıldı. Verileriniz yükleniyor.');
+    }).catch(err => {
+      if (state.auth !== a) return;
+      a.busy = false; a.error = err.message; renderAuth(); focusAuth();
+    });
+  });
+
+  /* =========================================================
      OLAYLAR
      ========================================================= */
   function toast(msg) {
@@ -1113,6 +1229,8 @@
   }
 
   document.addEventListener('click', e => {
+    const menu = $('#account-menu');
+    if (menu && !menu.hidden && !e.target.closest('#account-menu') && !e.target.closest('#account-btn')) hideAccountMenu();
     const el = e.target.closest('[data-action]');
     if (!el) return;
     const a = el.dataset.action;
@@ -1123,19 +1241,44 @@
       case 'open-machine': openMachine(el.dataset.id, el.dataset.tab); break;
       case 'close-drawer': closeDrawer(); break;
       case 'drawer-tab': state.drawer.tab = el.dataset.tab; $$('#drawer .tab').forEach(t => t.setAttribute('aria-selected', t.dataset.tab === el.dataset.tab)); renderDrawerBody(); break;
-      case 'cal-week': { const dl = +el.dataset.delta; state.drawer.week = dl === 0 ? 0 : state.drawer.week + dl; state.drawer.sel = null; renderDrawerBody(); break; }
+      case 'cal-week': {
+        const dl = +el.dataset.delta; state.drawer.week = dl === 0 ? 0 : state.drawer.week + dl; state.drawer.sel = null; renderDrawerBody();
+        if (SF.mode === 'live') {
+          const id = state.drawer.id, ws = SF.addDays(SF.startOfWeek(Date.now()), state.drawer.week * 7);
+          Backend.ensureRange(id, ws - DAY, SF.addDays(ws, 8))
+            .then(changed => { if (changed && state.drawer && state.drawer.id === id && state.drawer.tab === 'takvim') renderDrawerBody(); })
+            .catch(err => toast(err.message));
+        }
+        break;
+      }
       case 'sel-job': state.drawer.sel = el.dataset.job && state.drawer.sel !== el.dataset.job ? el.dataset.job : null; { const sc = $('#drawer-body').scrollTop; renderDrawerBody(); $('#drawer-body').scrollTop = sc; } break;
-      case 'buy': openWizard(el.dataset.factory, el.dataset.slot); break;
+      case 'buy':
+        if (SF.mode === 'live' && !SF.ME.signedIn) openAuth('signin', 'Makine satın almak için giriş yapın veya ücretsiz hesap oluşturun.');
+        else openWizard(el.dataset.factory, el.dataset.slot);
+        break;
       case 'wiz-close': { const wasDone = state.wiz && state.wiz.done; closeWizard(); if (wasDone) render(); break; }
       case 'wiz-axes': state.wiz.axes = +el.dataset.axes; renderWizard(); break;
       case 'wiz-model': state.wiz.ownShare = +el.dataset.share; renderWizard(); break;
       case 'wiz-next': state.wiz.step = Math.min(3, state.wiz.step + 1); renderWizard(); $('#modal-root .modal-body').scrollTop = 0; break;
       case 'wiz-back': state.wiz.step = Math.max(1, state.wiz.step - 1); renderWizard(); break;
       case 'wiz-confirm': {
-        const w = state.wiz; if (!w.agree) break;
-        const m = SF.purchase({ factory: w.factory, slot: w.slot, axes: w.axes, ownShare: w.ownShare, util: w.util });
-        w.done = m.id; renderWizard(); render();
-        toast(`${m.id} siparişi oluşturuldu. Tedarik süreci başladı.`);
+        const w = state.wiz; if (!w.agree || w.busy) break;
+        const req = { factory: w.factory, slot: w.slot, axes: w.axes, ownShare: w.ownShare, util: w.util };
+        if (SF.mode === 'live') {
+          w.busy = true; w.error = ''; renderWizard();
+          Backend.purchase(req).then(id => {
+            if (state.wiz !== w) return;
+            w.busy = false; w.done = id; renderWizard(); render();
+            toast(`${id} siparişi kaydedildi. Tedarik süreci başladı.`);
+          }).catch(err => {
+            if (state.wiz !== w) return;
+            w.busy = false; w.error = err.message; renderWizard();
+          });
+        } else {
+          const m = SF.purchase(req);
+          w.done = m.id; renderWizard(); render();
+          toast(`${m.id} siparişi oluşturuldu. Tedarik süreci başladı.`);
+        }
         break;
       }
       case 'wiz-goto-mine': closeWizard(); state.period = 'today'; setView('makinelerim'); break;
@@ -1143,6 +1286,14 @@
       case 'split-axes': state.splitAxes = +el.dataset.axes; render(); break;
       case 'an-table': state.an.table = !state.an.table; render(); break;
       case 'theme': toggleTheme(); break;
+      case 'account': toggleAccountMenu(); break;
+      case 'auth-open': openAuth(el.dataset.mode || 'signin'); break;
+      case 'auth-close': closeAuth(); break;
+      case 'auth-mode': state.auth.mode = el.dataset.mode; state.auth.error = ''; state.auth.info = ''; renderAuth(); focusAuth(); break;
+      case 'sign-out':
+        hideAccountMenu();
+        Backend.signOut().then(() => toast('Çıkış yapıldı.')).catch(err => toast(err.message));
+        break;
     }
   });
 
@@ -1151,7 +1302,7 @@
     if (t.id === 'mine-only') { state.mineOnly = t.checked; refreshFloor(); }
     else if (t.id === 'an-month') { state.an.month = +t.value; render(); }
     else if (t.id === 'an-machine') { state.an.machine = t.value; render(); }
-    else if (t.id === 'wiz-agree') { state.wiz.agree = t.checked; const b = $('[data-action="wiz-confirm"]'); if (b) b.disabled = !t.checked; }
+    else if (t.id === 'wiz-agree') { state.wiz.agree = t.checked; const b = $('[data-action="wiz-confirm"]'); if (b) b.disabled = !t.checked || !!state.wiz.busy; }
   });
   document.addEventListener('input', e => {
     const t = e.target; const w = state.wiz; if (!w) return;
@@ -1167,11 +1318,17 @@
   }, true);
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      if (state.wiz) closeWizard();
+      if (!$('#account-menu').hidden) hideAccountMenu();
+      else if (state.auth) closeAuth();
+      else if (state.wiz) closeWizard();
       else if (state.drawer) closeDrawer();
     }
   });
-  $('#modal-root').addEventListener('click', e => { if (e.target.id === 'modal-root') { const wasDone = state.wiz && state.wiz.done; closeWizard(); if (wasDone) render(); } });
+  $('#modal-root').addEventListener('click', e => {
+    if (e.target.id !== 'modal-root') return;
+    if (state.auth) { closeAuth(); return; }
+    const wasDone = state.wiz && state.wiz.done; closeWizard(); if (wasDone) render();
+  });
 
   // veri ipucu (şelale, ısı haritası)
   function showTT(t, x, y) {
@@ -1205,12 +1362,15 @@
   function tickTop() {
     const now = Date.now();
     $('#clock').textContent = fClock.format(now);
+    const box = $('.top-net');
+    box.hidden = SF.mode === 'live' && !SF.ME.signedIn;
+    if (box.hidden) return;
     const s = SF.sumStats(SF.myMachines(), SF.startOfMonth(now), now);
     $('#top-net').textContent = usd(s.net);
   }
   setInterval(() => { tickTop(); tickMine(); }, 1000);
   setInterval(() => {
-    if (state.wiz) return;
+    if (state.wiz || state.auth || state.booting) return;
     if (state.view === 'fabrikalar') refreshFloor();
     if (state.view === 'makinelerim') {
       const k = $('#my-kpis'); if (k) k.innerHTML = myKpisHTML();
@@ -1227,6 +1387,32 @@
   }
   window.addEventListener('hashchange', () => { const v = fromHash(); if (v !== state.view) setView(v, false); });
   state.view = fromHash();
+  if (window.Backend && Backend.enabled) {
+    state.booting = true;
+    render();
+    Backend.onChange = () => {
+      Backend.load().then(() => {
+        render(); tickTop();
+        if (state.drawer) { if (SF.machine(state.drawer.id)) renderDrawer(); else closeDrawer(); }
+      }).catch(err => toast(err.message));
+    };
+    Backend.init().then(() => {
+      state.booting = false; render(); tickTop();
+    }).catch(err => {
+      state.booting = false; state.bootError = err.message; render(); tickTop();
+      toast('Veritabanına bağlanılamadı. Demo verisi gösteriliyor.');
+      console.error('SanalFabrika:', err);
+    });
+    // Diğer yatırımcıların siparişleri ve yeni işler için düzenli yenileme
+    setInterval(() => {
+      if (SF.mode !== 'live' || state.wiz || state.auth || document.hidden) return;
+      Backend.load().then(() => {
+        if (state.view === 'fabrikalar') refreshFloor();
+        else if (state.view === 'makinelerim') render();
+      }).catch(() => { /* bir sonraki denemede tekrar */ });
+    }, 180000);
+  } else {
+    render();
+  }
   tickTop();
-  render();
 })();

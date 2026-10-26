@@ -127,7 +127,7 @@
     { key: 'calib', label: 'Kalibrasyon & deneme üretimi', days: 3, desc: 'Lazer ve ballbar ölçümü yapılır, ilk parça onayı alınır.' },
     { key: 'live', label: 'Üretime hazır', days: 0, desc: 'Makine takvime açılır ve iş almaya başlar.' }
   ];
-  const PROC_TOTAL_DAYS = PROC_STEPS.reduce((a, s) => a + s.days, 0);
+  let PROC_TOTAL_DAYS = PROC_STEPS.reduce((a, s) => a + s.days, 0);
 
   /* ---------- tesisler ---------- */
   const FACTORIES = [
@@ -150,7 +150,7 @@
   const FACTORY_BY_ID = Object.fromEntries(FACTORIES.map(f => [f.id, f]));
   const SLOTS = ['A01', 'A02', 'A03', 'A04', 'A05', 'B01', 'B02', 'B03', 'B04', 'B05'];
 
-  const ME = { id: 'me', name: 'Deniz Aksoy', initials: 'DA' };
+  const ME = { id: 'me', name: 'Deniz Aksoy', initials: 'DA', code: 'INV-1000', signedIn: true };
 
   // f: tesis, slot, axes, owner, durum (şu anki), commission: kaç gün önce devreye alındı
   const MACHINE_DEFS = [
@@ -473,9 +473,82 @@
     return m;
   }
 
-  window.SF = {
+  /* ---------- canlı veri (Supabase) ile doldurma ----------
+     backend.js veritabanından okuduğu satırları buraya verir. Diziler ve nesneler yerinde
+     güncellenir; böylece uygulamanın geri kalanı demo ve canlı modda aynı kodu kullanır. */
+  const initials = name => String(name || '?').trim().split(/\s+/).slice(0, 2).map(w => w.charAt(0).toLocaleUpperCase('tr-TR')).join('') || '?';
+  function mapJob(r) {
+    const start = Date.parse(r.starts_at), end = Date.parse(r.ends_at);
+    return {
+      id: 'j' + r.id, kind: r.kind, title: r.title, part: r.kind === 'job' ? r.title : null, mat: r.material || '',
+      cycle: r.cycle_min == null ? null : Number(r.cycle_min), qty: r.qty, setup: r.setup_min || 0,
+      source: r.source, customer: r.customer_name || null, order: r.order_no || '',
+      start, end, durMin: (end - start) / MIN
+    };
+  }
+  function hydrate(d) {
+    Object.keys(TYPES).forEach(k => { delete TYPES[k]; });
+    d.types.forEach(r => {
+      const cost = {
+        operator: +r.cost_operator, electricity: +r.cost_electricity, maintenance: +r.cost_maintenance,
+        tooling: +r.cost_tooling, facility: +r.cost_facility, insurance: +r.cost_insurance
+      };
+      TYPES[r.axes] = {
+        axes: r.axes, code: r.code, family: r.family, price: +r.price, installFee: +r.install_fee, rate: +r.rate_per_min,
+        cost, opRate: +r.op_rate, powerKw: +r.power_kw, specs: r.specs || [], uses: r.uses || [], blurb: r.blurb || ''
+      };
+    });
+    d.fees.forEach(f => { FEES[f.source] = +f.rate; });
+    PROC_STEPS.length = 0;
+    d.steps.forEach(s => PROC_STEPS.push({ key: s.key, label: s.label, days: s.days, desc: s.description }));
+    PROC_TOTAL_DAYS = PROC_STEPS.reduce((a, s) => a + s.days, 0);
+    FACTORIES.length = 0;
+    Object.keys(FACTORY_BY_ID).forEach(k => { delete FACTORY_BY_ID[k]; });
+    d.factories.forEach(f => {
+      const o = {
+        id: f.id, code: f.code, name: f.name, short: f.short_name, city: f.city, lead: f.lead, area: f.area_m2,
+        powerKva: f.power_kva, operatorsPerShift: f.operators_per_shift, status: f.status,
+        openAt: f.open_at ? Date.parse(f.open_at) : null, since: f.since_label
+      };
+      FACTORIES.push(o); FACTORY_BY_ID[o.id] = o;
+    });
+    if (d.slots && d.slots.length) { SLOTS.length = 0; [...new Set(d.slots.map(s => s.code))].sort().forEach(c => SLOTS.push(c)); }
+    const ownJobs = {}, pubJobs = {};
+    (d.ownJobs || []).forEach(r => { (ownJobs[r.machine_id] = ownJobs[r.machine_id] || []).push(mapJob(r)); });
+    (d.publicJobs || []).forEach(r => { (pubJobs[r.machine_id] = pubJobs[r.machine_id] || []).push(mapJob(r)); });
+    MACHINES.length = 0;
+    d.machines.forEach(r => {
+      const T = TYPES[r.axes];
+      const proc = r.status === 'procurement';
+      const jobs = (r.is_mine && ownJobs[r.id]) ? ownJobs[r.id] : (pubJobs[r.id] || []);
+      jobs.sort((a, b) => a.start - b.start);
+      MACHINES.push({
+        id: r.id, factory: r.factory_id, slot: r.slot_code, axes: r.axes, owner: r.owner_code, mine: !!r.is_mine,
+        ownShare: +r.own_share_target, state0: null, commission: r.commissioned_at ? Date.parse(r.commissioned_at) : null,
+        proc, orderDate: Date.parse(r.ordered_at), isNew: proc && !!r.is_mine && Date.now() - Date.parse(r.ordered_at) < 7 * DAY,
+        type: T, model: T.code, invest: T.price + T.installFee, jobs, jobsFrom: r.is_mine ? -Infinity : d.publicFrom, jobsTo: r.is_mine ? Infinity : d.publicTo
+      });
+    });
+    ME.name = d.investor ? d.investor.display_name : '';
+    ME.code = d.investor ? d.investor.code : '';
+    ME.initials = initials(ME.name);
+    ME.signedIn = !!d.investor;
+    SF.mode = 'live';
+  }
+  // Başka bir yatırımcının makinesi için yüklü aralığın dışındaki takvimi ekler
+  function mergeJobs(machineId, rows, from, to) {
+    const m = machine(machineId); if (!m) return;
+    const have = new Set(m.jobs.map(j => j.id));
+    rows.map(mapJob).forEach(j => { if (!have.has(j.id)) m.jobs.push(j); });
+    m.jobs.sort((a, b) => a.start - b.start);
+    m.jobsFrom = Math.min(m.jobsFrom, from); m.jobsTo = Math.max(m.jobsTo, to);
+  }
+
+  const SF = window.SF = {
+    mode: 'demo', hydrate, mergeJobs,
+    get PROC_TOTAL_DAYS() { return PROC_TOTAL_DAYS; },
     MIN, HOUR, DAY, NOW0, FEES, SOURCE_LABEL, COST_KEYS, COST_LABELS, COST_HINTS, TYPES, PARTS,
-    PROC_STEPS, PROC_TOTAL_DAYS, FACTORIES, SLOTS, ME, MACHINES, STATUS_LABEL,
+    PROC_STEPS, FACTORIES, SLOTS, ME, MACHINES, STATUS_LABEL,
     machine, factory, machinesIn, machineAt, myMachines, jobAt, nextJob, prevJob, statusAt, partsDone,
     windowStats, sumStats, emptyStats, addStats, procInfo, procPlan, perMinute, projectMonthly,
     factoryLive, factoryEvents, shiftAt, machinePowerKw, purchase,

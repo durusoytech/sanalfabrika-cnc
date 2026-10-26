@@ -1,0 +1,30 @@
+# Supabase ücretsiz planında 7 gün istek gelmeyen projeler duraklatılır.
+# Bu görev üç günde bir veritabanına küçük bir okuma isteği atar.
+# Gerekli depo değişkenleri: SUPABASE_URL ve SUPABASE_KEY (publishable key).
+name: Supabase uyanık tut
+
+on:
+  schedule:
+    - cron: '17 6 */3 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Veritabanına okuma isteği gönder
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ vars.SUPABASE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_KEY" ]; then
+            echo "SUPABASE_URL ve SUPABASE_KEY depo değişkenleri tanımlı değil, görev atlandı."
+            exit 0
+          fi
+          code=$(curl -s -o /dev/null -w '%{http_code}' "$SUPABASE_URL/rest/v1/factories?select=id&limit=1" \
+            -H "apikey: $SUPABASE_KEY")
+          echo "Yanıt: HTTP $code"
+          test "$code" = "200"
