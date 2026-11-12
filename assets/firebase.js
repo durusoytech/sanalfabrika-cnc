@@ -7,8 +7,8 @@ import {
   updateProfile, signOut, sendPasswordResetEmail, connectAuthEmulator
 } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 import {
-  getFirestore, collection, doc, getDocs, getDoc, setDoc, addDoc, deleteDoc, query, where,
-  serverTimestamp, connectFirestoreEmulator
+  getFirestore, collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc, deleteDoc, query, where,
+  serverTimestamp, Timestamp, connectFirestoreEmulator
 } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore-lite.js';
 
 const SF = window.SF;
@@ -37,7 +37,8 @@ const MESSAGES = [
   [/auth\/invalid-email/, 'Geçerli bir e-posta adresi girin.'],
   [/auth\/too-many-requests/, 'Çok fazla deneme yapıldı. Birkaç dakika sonra tekrar deneyin.'],
   [/auth\/network-request-failed|Failed to fetch|NetworkError|Load failed/, 'Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edin.'],
-  [/permission-denied|Missing or insufficient permissions/, 'Bu işlem için yetkiniz yok.']
+  [/permission-denied|Missing or insufficient permissions/, 'Bu işlem için yetkiniz yok.'],
+  [/slot-taken/, 'Bu slot dolu. Başka bir slot seçin.']
 ];
 function friendly(err) {
   const raw = (err && (err.code || '')) + ' ' + (err && err.message ? err.message : String(err));
@@ -104,12 +105,18 @@ const B = {
     SF.setMachines(machines);
 
     if (u) {
+      // Personel tüm işleri ve talepleri görür; yatırımcı yalnızca kendisininkileri
       const [jobs, requests] = await Promise.all([
-        all(query(collection(db, 'jobs'), where('ownerUid', '==', u.uid))),
-        all(query(collection(db, 'requests'), where('uid', '==', u.uid)))
+        all(staff ? collection(db, 'jobs') : query(collection(db, 'jobs'), where('ownerUid', '==', u.uid))),
+        all(staff ? collection(db, 'requests') : query(collection(db, 'requests'), where('uid', '==', u.uid)))
       ]);
       SF.setJobs(jobs);
       SF.setRequests(requests);
+      if (staff) {
+        const [news, investors] = await Promise.all([all(collection(db, 'news')), all(collection(db, 'investors'))]);
+        SF.setNews(news);
+        B.investors = Object.fromEntries(investors.map(i => [i.id, i]));
+      }
     } else {
       SF.setJobs([]);
       SF.setRequests([]);
@@ -153,6 +160,54 @@ const B = {
     await deleteDoc(doc(db, 'requests', id));
     await B.load();
   })
+};
+
+/* ---------- personel işlemleri ----------
+   Bu çağrılar yalnızca staff/{uid} belgesi olan kullanıcılar için Firestore kurallarından geçer. */
+B.investors = {};
+B.admin = {
+  setRequestStatus: wrap(async (id, status) => {
+    await updateDoc(doc(db, 'requests', id), { status });
+    await B.load();
+  }),
+
+  // Onaylanan talep için tezgâhı tanımlar: slot yatırımcıya ayrılır ve tedarik süreci başlar.
+  createMachine: wrap(async ({ requestId, uid, facilityId, slot, axes, ownShare }) => {
+    const f = SF.facility(facilityId), T = SF.TYPES[axes];
+    const id = `${f.code}-${slot}`;
+    if ((await getDoc(doc(db, 'machines', id))).exists()) throw new Error('slot-taken');
+    await setDoc(doc(db, 'machines', id), {
+      facilityId, slot, axes, model: T.code, ownerUid: uid, status: 'procurement', liveStatus: 'idle',
+      orderedAt: serverTimestamp(), ownShareTarget: ownShare, price: T.price, installFee: T.installFee
+    });
+    if (requestId) await updateDoc(doc(db, 'requests', requestId), { status: 'approved', machineId: id });
+    await B.load();
+    return id;
+  }),
+
+  setLiveStatus: wrap(async (id, liveStatus) => {
+    await updateDoc(doc(db, 'machines', id), { liveStatus });
+    await B.load();
+  }),
+
+  // Kurulumu biten tezgâhı üretime alır
+  commission: wrap(async id => {
+    await updateDoc(doc(db, 'machines', id), { status: 'active', liveStatus: 'idle', commissionedAt: serverTimestamp() });
+    await B.load();
+  }),
+
+  addJob: wrap(async job => {
+    const data = Object.assign({}, job, { startsAt: Timestamp.fromMillis(job.startsAt), endsAt: Timestamp.fromMillis(job.endsAt) });
+    await addDoc(collection(db, 'jobs'), data);
+    await B.load();
+  }),
+  deleteJob: wrap(async id => { await deleteDoc(doc(db, 'jobs', id)); await B.load(); }),
+
+  addNews: wrap(async ({ title, body }) => {
+    await addDoc(collection(db, 'news'), { title, summary: body[0] || '', body, publishedAt: serverTimestamp() });
+    await B.load();
+  }),
+  deleteNews: wrap(async id => { await deleteDoc(doc(db, 'news', id)); await B.load(); })
 };
 
 window.Backend = B;

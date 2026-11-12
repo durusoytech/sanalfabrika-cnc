@@ -1,96 +1,140 @@
-# Emek Sermaye · Gerçek veritabanı kurulumu
+# Emek Sermaye · Kurulum ve işletme rehberi
 
-Bu rehber, siteyi tarayıcıdaki demo verisinden gerçek bir Postgres veritabanına geçirir. Her şey ücretsiz planlarda çalışır ve kredi kartı gerekmez.
+Site, giriş ve veritabanı Firebase üzerinde çalışır. Ayrı bir sunucu yoktur. Her şey Firebase'in kart istemeyen ücretsiz planındadır.
 
-## Mimari: backend nerede çalışıyor?
-
-Ayrı bir Node.js sunucusu yok. Sistem iki parçadan oluşur:
+## Mimari
 
 ```
-Tarayıcı                          GitHub Pages (ücretsiz)
-  ├─ index.html                   Tanıtım sitesi (emeksermaye.com)
-  └─ platform.html + assets/*     Yatırımcı platformu: fabrikalar, makineler, analiz
+Tarayıcı
+  ├─ index.html        Tanıtım sitesi (emeksermaye.com)
+  └─ platform.html     Yatırımcı platformu: Tesisler, Makinelerim, Analiz, Yönetim
         │
-        │  HTTPS (supabase-js)
         ▼
-Supabase (ücretsiz plan)
-  ├─ Auth            Kayıt, giriş, oturum
-  ├─ Data API        Tablolar ve fonksiyonlar için otomatik REST uç noktaları
-  └─ Postgres        Asıl backend burası
-       ├─ Tablolar          tesisler, slotlar, makineler, işler, siparişler, ücretler
-       ├─ RLS kuralları     kim neyi görebilir, kim neyi değiştirebilir
-       ├─ Fonksiyonlar      satın alma, takvim, kâr hesabı (iş kuralları)
-       └─ pg_cron           saatlik demo iş takvimi üretimi
+Firebase projesi: emeksermaye
+  ├─ Hosting           Site dosyalarını yayınlar
+  ├─ Authentication    E-posta ve şifreyle kayıt ve giriş
+  └─ Cloud Firestore   Veritabanı (Avrupa bölgesi, eur3)
+       └─ firestore.rules   Kim neyi okuyabilir, kim neyi yazabilir
 ```
 
-İş kuralları Postgres fonksiyonları olarak yazıldı. Bu sayede:
-
-- Kâr, işletme ücreti ve platform payı hesabı sunucuda yapılır ve tarayıcıda değiştirilemez.
-- Bir yatırımcı başka yatırımcının müşteri adlarını ve gelirini göremez. Bu kural veritabanında uygulanır, site kodunda değil.
-- Aynı makineye çakışan iş girilemez, dolu slota ikinci makine alınamaz.
-- Kod standart SQL'dir. Supabase'den ayrılırken veritabanıyla birlikte taşınır.
+Yetkiler site kodunda değil, veritabanındaki kurallarda tutulur. Bir kullanıcı tarayıcıdaki kodu değiştirse bile kuralların izin vermediği veriyi okuyamaz ve yazamaz.
 
 | Dosya | Görevi |
 |---|---|
-| `supabase/migrations/*_sema.sql` | Tablolar, kısıtlar ve referans verileri |
-| `supabase/migrations/*_is_kurallari.sql` | Satın alma, takvim, durum ve kâr fonksiyonları |
-| `supabase/migrations/*_guvenlik.sql` | RLS kuralları ve rol yetkileri |
-| `supabase/migrations/*_demo_motoru.sql` | Gerçek makine bağlantısı gelene kadar iş takvimi simülasyonu |
-| `supabase/seed.sql` | 3 tesis, 30 slot ve 21 demo makine |
-| `supabase/setup.sql` | Yukarıdakilerin hepsi tek dosyada, SQL Editor'e yapıştırmak için |
-| `assets/config.js` | Supabase adresi ve publishable key |
-| `assets/backend.js` | Sitenin Supabase ile konuştuğu katman |
+| `index.html`, `assets/site.css`, `assets/site.js` | Tanıtım sitesi |
+| `platform.html`, `assets/platform.css`, `assets/platform.js` | Yatırımcı platformu |
+| `assets/admin.js` | Yönetim ekranı, yalnızca personele görünür |
+| `assets/firebase.js` | Giriş ve Firestore bağlantısı |
+| `assets/core.js` | Varsayılan ayarlar ve gelir hesabı |
+| `assets/config.js` | Firebase bağlantı ayarları, herkese açık değerler |
+| `firestore.rules` | Erişim kuralları |
+| `tools/` | Veri yükleme, personel tanımlama ve kural testleri |
 
-## Site nerede yayınlanmalı?
+## Veritabanı
 
-Site statik dosyalardan oluşur ve Supabase'e tarayıcıdan bağlanır. Bu yüzden herhangi bir statik barındırma hizmetinden yayınlanabilir. Supabase'in API'si her alan adından gelen isteği kabul eder.
-
-| Seçenek | Ücret | Sınır | Bu proje için |
+| Koleksiyon | İçerik | Kim okur | Kim yazar |
 |---|---|---|---|
-| GitHub Pages | Ücretsiz | Site en fazla 1 GB, ayda 100 GB trafik | Prototip ve tanıtım için uygun |
-| Firebase Hosting, Spark planı | Ücretsiz, kart istemez | 10 GB depolama, ayda 10 GB trafik | Gerçek kullanıcılar için önerilen |
-| Supabase | Site barındırma hizmeti yok | Dosya deposu HTML dosyalarını güvenlik nedeniyle düz metin olarak sunar | Uygun değil |
+| `config` | Platform payı oranları, ön ödeme oranı, tedarik adımları | Herkes | Personel |
+| `machineTypes` | 3, 4 ve 5 eksen tezgâh tipleri, fiyat ve dakika ücretleri | Herkes | Personel |
+| `facilities` | Tesisler: ad, konum, slotlar, fotoğraflar | Herkes | Personel |
+| `machines` | Tezgâhlar: slot, tip, sahibi, durum | Herkes | Personel |
+| `news` | Ana sayfadaki haberler | Herkes | Personel |
+| `jobs` | İş ve bakım kayıtları, müşteri adı dahil | Tezgâh sahibi, personel | Personel |
+| `investors` | Yatırımcının adı ve kodu | Kendisi, personel | Kendisi |
+| `requests` | Yatırım talepleri | Kendisi, personel | Kendisi oluşturur, personel yönetir |
+| `staff` | Personel listesi | Kendisi | Yalnızca araç ya da konsol |
 
-**GitHub Pages'in kullanım şartları** ticari işlemlere aracılık eden siteleri, SaaS olarak çalışan siteleri ve şifre gibi hassas bilgilerin gönderildiği siteleri yasaklar. Gerçek yatırımcılar giriş yapıp makine satın almaya başladığında siteyi Firebase Hosting'e taşıyın.
+Makinelerin o anki durumu `machines` belgesindeki `liveStatus` alanıdır: `running`, `setup`, `idle` ya da `maintenance`. Bu alanı personel Yönetim ekranından günceller. Tezgâhlar fabrikada bir sisteme bağlandığında aynı alan otomatik güncellenebilir.
 
-**Firebase Hosting'de** aylık trafik sınırı aşılırsa kısa bir ek süreden sonra site ay sonuna kadar kapanır, ücret çıkmaz. Bu projenin dosyaları toplamda yaklaşık 250 KB olduğu için sınır uzun süre sorun olmaz.
+## Günlük işletme
 
-### Firebase Hosting'e yayınlama
+### Personel tanımlama
 
-Depodaki `firebase.json` dosyası hazırdır. Yalnızca site dosyalarını yükler; `supabase/`, `scripts/` ve `node_modules/` yüklenmez.
-
-Firebase projesi açıldı: kimliği `emeksermaye`, sahibi drusoyyasin@gmail.com hesabı. Site https://emeksermaye.web.app adresinde yayında. Depodaki `.firebaserc` bu projeyi varsayılan yapar.
-
-1. Bilgisayarınızda Firebase hesabınıza giriş yapın (bir kez):
-
-```bash
-npx firebase-tools login
-```
-
-2. Her değişiklikten sonra yayınlayın:
+1. Kişi sitede kendi e-postasıyla hesap açar.
+2. Bu bilgisayarda şu komutu çalıştırın:
 
 ```bash
-npx firebase-tools deploy --only hosting
+node tools/make-staff.mjs kisi@ornek.com
 ```
 
-Yayın yalnızca 12 site dosyasını yükler. `firebase.json` içindeki kurallar `.git`, `.github`, `supabase/`, `scripts/` ve `node_modules/` klasörlerini dışarıda bırakır. Yayın sonrası `found 12 files` satırını görmelisiniz; sayı çok daha büyükse kuralları kontrol edin.
+3. Kişi sayfayı yenilediğinde üst menüde **Yönetim** sekmesini görür.
 
-3. `https://emeksermaye.web.app` adresini Supabase'de **Authentication > URL Configuration** sayfasına ekleyin. Site URL olarak ana adresi, Redirect URL olarak `…/platform.html` adresini yazın.
+Personellikten çıkarmak için aynı komuta `--remove` ekleyin. Komut Firebase komut satırı oturumunu kullanır, önce bir kez `npx firebase-tools login` gerekir.
 
-## emeksermaye.com alan adını bağlama
+### Yatırım talebinden üretime
 
-Site iki sayfadan oluşur: ana sayfa (`index.html`) tanıtım sitesidir, `platform.html` ise yatırımcı platformudur. Alan adı bağlandığında adresler şöyle olur:
+1. Yatırımcı Tesisler sayfasında boş bir slot seçip **yatırım talebi** oluşturur. Talep bir ön başvurudur, slotu kilitlemez ve ödeme almaz.
+2. Personel Yönetim ekranında talebi görür, yatırımcıyla görüşür ve talebi **Görüşülüyor** yapar.
+3. Sözleşme imzalanıp ön ödeme alındıktan sonra personel **Tezgâhı tanımla** der. Slot yatırımcıya ayrılır ve tedarik süreci o gün başlar. Yatırımcı adımları Makinelerim sayfasından izler.
+4. Kurulum bittiğinde personel **Üretime al** der. Tezgâh iş almaya başlar.
+5. Personel **İşler** bölümünden iş ve bakım kayıtlarını girer. Bitiş saati adet, çevrim ve ayar süresinden hesaplanır. Aynı tezgâha çakışan kayıt girilemez.
 
-| Adres | Sayfa |
-|---|---|
-| `https://emeksermaye.com` | Tanıtım sitesi |
-| `https://emeksermaye.com/platform.html` | Yatırımcı platformu |
+Yatırımcının kazancı bu iş kayıtlarından hesaplanır: çalışılan dakika, dakika ücreti, işletme ücreti ve platform payı.
 
-**Alan adını sitenin yayınlandığı yere göre yönlendirin, ikisine birden yönlendirmeyin.**
+### Haber yayınlama
 
-### Firebase Hosting ile (kullanılan yöntem)
+Yönetim ekranındaki **Haberler** bölümünden başlık ve metin girin. Haber ana sayfada görünür. Fotoğraflı haber için aşağıdaki fotoğraf adımlarını izleyip haberin `image` alanını Firebase konsolundan doldurun.
 
-emeksermaye.com, 12 Kasım 2026'da Firebase Hosting'deki `emeksermaye` projesine bağlandı. `www.emeksermaye.com` ana adrese yönlendirilir. Alan adı Turkticaret.net'te kayıtlı, DNS kayıtları da Turkticaret panelinden yönetiliyor.
+### Tesis fotoğrafını değiştirme
+
+Şu an Kazan tesisinde internetten alınmış temsili bir fotoğraf var. Gerçek fotoğrafı koymak için:
+
+1. Fotoğrafı `assets/img/tesisler/` klasörüne koyun, örneğin `kazan-2.jpg`. Yaklaşık 1280 piksel genişlik yeterlidir.
+2. Siteyi yayınlayın: `npm run deploy`
+3. Firebase konsolunda **Firestore > facilities > kazan** belgesini açın. `photos` listesindeki ilk öğede `src` alanını `assets/img/tesisler/kazan-2.jpg` yapın, `alt` alanına kısa bir açıklama yazın ve `representative`, `credit`, `license`, `sourceUrl` alanlarını silin.
+4. Aynı değişikliği **news > ilk-subemiz-acildi** belgesindeki `image` alanında da yapın.
+
+### Yeni tesis ekleme
+
+`tools/seed-data.mjs` dosyasındaki `facilities` bölümüne yeni tesisi ekleyip şu komutu çalıştırın. Komut yalnızca eksik belgeleri oluşturur, var olanlara dokunmaz.
+
+```bash
+node tools/seed.mjs
+```
+
+Tesis haritada `lat` ve `lng` alanlarındaki konumda görünür.
+
+### Fiyat ve oranları değiştirme
+
+Firebase konsolunda **Firestore** bölümünden değiştirin. Değişiklik siteye hemen yansır.
+
+- Tezgâh fiyatı, dakika ücreti ve işletme kalemleri: `machineTypes` koleksiyonu
+- Platform payı ve ön ödeme oranı: `config/pricing` belgesi
+- Tedarik adımları ve süreleri: `config/procurement` belgesi
+
+## Yayınlama
+
+```bash
+npm run deploy
+```
+
+Komut site dosyalarını ve erişim kurallarını yayınlar. Çıktıda `found 14 files` civarında bir sayı görmelisiniz. Sayı çok daha büyükse `firebase.json` içindeki hariç tutma kurallarını kontrol edin.
+
+## Yerel geliştirme ve test
+
+Node.js 20 veya üstü, Java ve Firebase komut satırı aracı gerekir. Yerel test ortamı canlı veriye dokunmaz.
+
+```bash
+npm run dev
+```
+
+Site http://localhost:5055 adresinde açılır ve yerel giriş ile veritabanı emülatörüne bağlanır. İlk verileri yüklemek için ikinci bir terminalde:
+
+```bash
+npm run seed:local
+```
+
+Erişim kurallarının testleri:
+
+```bash
+npm run test:rules
+```
+
+Yerelde çalışırken canlı veriyi görmek için adrese `?canli=1` ekleyin.
+
+## Alan adı
+
+emeksermaye.com, Firebase Hosting'deki `emeksermaye` projesine bağlıdır. `www.emeksermaye.com` ana adrese yönlenir. Alan adı Turkticaret.net'te kayıtlıdır ve DNS kayıtları oradan yönetilir. SSL sertifikasını Firebase kendisi alır ve yeniler.
 
 | Ad | Tür | Değer | Not |
 |---|---|---|---|
@@ -100,135 +144,21 @@ emeksermaye.com, 12 Kasım 2026'da Firebase Hosting'deki `emeksermaye` projesine
 | `@` | MX | `mx.turkticaret.net` | E-posta, değiştirmeyin |
 | `@` | TXT | `v=spf1 include:_spf.turkticaret.net ~all` | E-posta, değiştirmeyin |
 
-Turkticaret'in park sayfasına giden eski A kaydı (`31.186.11.254`) silindi. SSL sertifikasını Firebase kendisi alır ve yeniler. Yeniden kurmanız gerekirse Firebase konsolunda **Hosting > Add custom domain** bölümünden alan adını ekleyip yukarıdaki kayıtları girmeniz yeterlidir.
-
-### GitHub Pages ile (prototip için)
-
-1. Alan adı firmanızın DNS panelinde ana alan adına şu dört A kaydını ekleyin: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`.
-2. `www` için `durusoytech.github.io` değerine işaret eden bir CNAME kaydı ekleyin.
-3. DNS yayıldıktan sonra GitHub'da depo **Settings > Pages > Custom domain** alanına `emeksermaye.com` yazıp kaydedin ve **Enforce HTTPS** seçeneğini açın.
-4. Başkasının alan adınızı GitHub'da kullanamaması için hesabınızın **Settings > Pages** bölümünden alan adını doğrulamanız önerilir.
-
-DNS kayıtları girilmeden GitHub'daki Custom domain alanını doldurmayın. Doldurursanız site çalışmayan adrese yönlenir.
-
-## Kurulum adımları
-
-### 1. Supabase projesi açın
-
-1. https://supabase.com adresinde ücretsiz hesap açın. Kart istenmez.
-2. **New project** ile bir proje oluşturun. Bölge olarak Avrupa bölgelerinden birini seçin, örneğin Frankfurt.
-3. Veritabanı şifresini güvenli bir yerde saklayın. Siteye yazılmaz.
-
-### 2. Veritabanını kurun
-
-1. Sol menüden **SQL Editor** sayfasını açın, **New query** deyin.
-2. `supabase/setup.sql` dosyasının tamamını yapıştırıp **Run** deyin.
-3. Bitince **Table Editor** sayfasında `machines` tablosunda 21 satır görmelisiniz.
-
-Bu dosyayı boş bir projede yalnızca bir kez çalıştırın. İkinci kez çalıştırırsanız tablolar zaten var hatası alırsınız.
-
-### 3. Giriş ayarları
-
-**Authentication > URL Configuration** sayfasında:
-
-- **Site URL:** sitenin ana adresi. Alan adı bağlandıysa `https://emeksermaye.com`, bağlanmadıysa `https://durusoytech.github.io/sanalfabrika-cnc/`.
-- **Redirect URLs:** platform sayfasının adresi, örneğin `https://emeksermaye.com/platform.html`. E-posta onay bağlantısı kullanıcıyı buraya geri getirir. Birden fazla adreste yayınlıyorsanız hepsini ekleyin.
-
-E-posta onayı varsayılan olarak açıktır. Yeni kullanıcı kayıttan sonra e-postasındaki bağlantıya tıklamadan giriş yapamaz. Supabase'in yerleşik e-posta servisi saatte birkaç e-postayla sınırlıdır. Gerçek kullanıcılara açılmadan önce **Authentication > Emails > SMTP Settings** bölümünden kendi e-posta servisinizi bağlayın.
-
-### 4. Siteyi veritabanına bağlayın
-
-1. Proje sayfasının üstündeki **Connect** düğmesinden veya **Project Settings > API Keys** sayfasından iki değeri alın:
-   - Project URL, örneğin `https://abcdxyz.supabase.co`
-   - Publishable key, `sb_publishable_` ile başlar
-2. `assets/config.js` dosyasına yazın:
-
-```js
-window.SF_CONFIG = {
-  supabaseUrl: 'https://abcdxyz.supabase.co',
-  supabaseKey: 'sb_publishable_...'
-};
-```
-
-3. Değişikliği GitHub'a gönderin. Bir iki dakika içinde site canlı veriyle açılır ve sağ üstte **Canlı veri** yazar.
-
-Hem tanıtım sitesi hem platform aynı ayarı kullanır. Tanıtım sitesindeki tesis rakamları da bu bağlantıyla canlı veriden okunur.
-
-Publishable key herkese açık olacak şekilde tasarlanmıştır ve depoya yazılabilir. **Secret key** (`sb_secret_` ile başlar) ise hiçbir zaman siteye veya depoya yazılmaz.
-
-### 5. Demo portföyünü kendi hesabınıza bağlayın
-
-1. Sitede **Giriş yap > Ücretsiz hesap oluşturun** ile kayıt olun ve e-postanızı onaylayın.
-2. SQL Editor'de şunu çalıştırın:
-
-```sql
-select public.link_demo_portfolio('sizin@e-postaniz.com');
-```
-
-Sayfayı yenilediğinizde Makinelerim ve Analiz ekranlarında Deniz Aksoy demo portföyünü görürsünüz.
-
-### 6. Tesis personeli tanımlayın (isteğe bağlı)
-
-Personel iş ve bakım kaydı girebilir, makineleri yönetebilir. Kayıt olmuş bir kullanıcıyı personel yapmak için:
-
-```sql
-insert into public.staff (user_id, role)
-select id, 'admin' from auth.users where email = 'personel@e-posta.com';
-```
-
-## Ayarlar
-
-`app_settings` tablosunda iki ayar vardır:
-
-| Anahtar | Varsayılan | Anlamı |
-|---|---|---|
-| `simulate_jobs` | `true` | Yeni alınan makineler kurulum bitince demo iş takvimi alır |
-| `max_open_orders` | `3` | Bir yatırımcının aynı anda bekleyebileceği en fazla sipariş |
-
-Gerçek işlere geçtiğinizde simülasyonu kapatın:
-
-```sql
-update public.app_settings set value = 'false' where key = 'simulate_jobs';
-update public.machines set is_demo = false;
-select cron.unschedule('emeksermaye-demo');
-```
-
 ## Ücretsiz plan sınırları
 
-- Veritabanı 500 MB. Bu proje başlangıçta yaklaşık 2 MB kullanır.
-- Ayda 50.000 aktif kullanıcı.
-- **7 gün hiç istek gelmezse proje duraklatılır.** Veri silinmez ama panelden elle yeniden başlatmak gerekir. Bunu önlemek için depoda `.github/workflows/supabase-uyanik.yml` görevi var. Üç günde bir veritabanına küçük bir istek atar. Çalışması için GitHub'da **Settings > Secrets and variables > Actions > Variables** sayfasına `SUPABASE_URL` ve `SUPABASE_KEY` değişkenlerini ekleyin. Bu yöntem yaygın kullanılır ama Supabase bunun duraklatmayı her zaman önleyeceğini garanti etmez.
-- GitHub, 60 gün boyunca hiç commit gelmeyen depolarda zamanlanmış görevleri kapatır. Uzun süre değişiklik yapmazsanız görevi **Actions** sekmesinden yeniden açın.
+- **Firestore:** 1 GB veri, günde 50.000 okuma ve 20.000 yazma. Sınır aşılırsa o gün için okuma ve yazma durur, ücret çıkmaz.
+- **Hosting:** 10 GB depolama ve ayda 10 GB trafik.
+- **Authentication:** E-posta ve şifreyle giriş ücretsizdir.
+- **Dosya depolama yok.** Firebase'in dosya deposu artık ücretli plan istiyor. Bu yüzden fotoğraflar site dosyalarıyla birlikte `assets/img/` klasöründe durur.
 
-## Yerel geliştirme
+## Bilinen eksikler
 
-Docker gerekmez. Node.js 20 veya üstü yeterlidir.
+- **Tezgâh bağlantısı yok.** Tezgâh durumunu ve iş kayıtlarını personel elle girer.
+- **Ödeme yok.** Ön ödeme ve tahsilat site dışında yapılır.
+- **Bildirim yok.** Yeni talep geldiğinde e-posta gitmez, personel Yönetim ekranından görür.
+- **E-posta onayı zorunlu değil.** Kayıt olan kullanıcı e-postasını doğrulamadan giriş yapabilir.
+- **Harita.** Harita karoları OpenStreetMap'in ücretsiz sunucularından gelir. Ziyaretçi sayısı arttığında ücretli bir harita sağlayıcısına geçmek gerekir.
 
-```bash
-npm install
-```
+## İleride kendi sunucunuza geçiş
 
-```bash
-npm run test:db
-```
-
-Veritabanı testleri migration'ları bellekte çalışan bir Postgres'e kurar, ardından güvenlik ve kâr hesaplarını doğrulayan 26 testi çalıştırır.
-
-```bash
-npm run dev
-```
-
-Yerel sunucu http://localhost:8792 adresinde açılır. Supabase'in sitenin kullandığı kısmını taklit eder ve her açılışta veritabanını sıfırdan kurar. Test hesabı: `demo@emeksermaye.test` / `demo1234`.
-
-Migration dosyalarını değiştirdikten sonra tek parça dosyayı yeniden üretin:
-
-```bash
-npm run build:sql
-```
-
-## Kendi sunucunuza taşıma
-
-İki yol vardır:
-
-1. **Supabase'i kendi sunucunuzda çalıştırmak.** Supabase açık kaynaktır ve Docker ile kurulur. Bu yolda kod hiç değişmez, sadece `config.js` içindeki adres değişir. Ayrıntılar: https://supabase.com/docs/guides/self-hosting/docker
-2. **Düz Postgres ve kendi Node.js API'niz.** Veritabanı `pg_dump` ile taşınır. Tablolar, kurallar ve fonksiyonlar standart Postgres olduğu için aynen çalışır. Değişmesi gereken iki şey var: kullanıcı kimliğini veren `auth.uid()` fonksiyonunu kendi giriş sisteminize bağlamak ve `assets/backend.js` dosyasını kendi API'nize göre uyarlamak.
+Firestore bir Postgres veritabanı değildir. Kendi Postgres sunucunuza geçtiğinizde veriyi dışarı aktarıp tabloya dönüştürmek ve `assets/firebase.js` dosyasını kendi API'nize göre yeniden yazmak gerekir. Gelir hesapları `assets/core.js` içinde ayrı durduğu için o kısım değişmez. Daha önce hazırlanan Postgres şeması ve kuralları depo geçmişinde durur.

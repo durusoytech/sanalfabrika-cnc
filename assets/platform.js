@@ -51,7 +51,7 @@
   }
 
   /* ---------- durum ---------- */
-  const VIEWS = ['tesisler', 'makinelerim', 'analiz'];
+  const VIEWS = ['tesisler', 'makinelerim', 'analiz', 'yonetim'];
   const state = {
     view: 'tesisler', facility: null, machineId: null, week: 0, selJob: null,
     month: SF.startOfMonth(Date.now()), anMachine: 'all',
@@ -66,6 +66,8 @@
   /* ---------- üst menü ---------- */
   function syncHeader() {
     $$('.main-nav a').forEach(a => a.setAttribute('aria-current', a.dataset.view === navView() ? 'page' : 'false'));
+    const adminLink = $('#nav-admin');
+    if (adminLink) adminLink.hidden = state.booting || !SF.ME.staff;
     const box = $('#account');
     if (state.booting || state.error) { box.innerHTML = ''; return; }
     if (!SF.ME.signedIn) {
@@ -104,9 +106,11 @@
         <button class="btn btn-primary" data-action="retry">Yeniden dene</button></section>`;
       return;
     }
+    if (state.view === 'yonetim' && !(SF.ME.staff && window.EmekAdmin)) state.view = 'tesisler';
     const v = state.view;
     if (v === 'tesisler') { main.innerHTML = viewFacilities(); mountMap(); }
     else if (!SF.ME.signedIn) main.innerHTML = signInPrompt(v);
+    else if (v === 'yonetim') main.innerHTML = window.EmekAdmin.view();
     else if (v === 'makinelerim') main.innerHTML = viewMine();
     else if (v === 'makine') main.innerHTML = viewMachine();
     else { main.innerHTML = viewAnalytics(); drawCharts(); }
@@ -254,7 +258,7 @@
     const now = Date.now();
     const mine = SF.myMachines();
     const active = mine.filter(m => !m.proc && m.commission);
-    const reqs = SF.REQUESTS;
+    const reqs = SF.REQUESTS.filter(r => r.uid === SF.ME.uid);
     if (!mine.length && !reqs.length) {
       return emptyState('Makinelerim', 'Henüz tezgâhınız yok',
         'Tesisler sayfasında yatırıma açık bir slot seçip yatırım talebi oluşturabilirsiniz. Talebiniz ve tezgâhınız burada görünür.',
@@ -742,9 +746,12 @@
     if (!started || state.modal || state.error || document.hidden) return;
     window.Backend.load().then(() => {
       if (state.view === 'tesisler') renderFacilityBody();
-      else if (state.view !== 'analiz') render();
+      else if (state.view !== 'analiz' && state.view !== 'yonetim') render();
     }).catch(() => { /* bir sonraki denemede */ });
   }, 5 * 60 * 1000);
+
+  // Yönetim ekranı (assets/admin.js) bu yardımcıları kullanır
+  window.EmekPlatform = { state, render, toast, showModal, closeModal, esc, usd, pct, num, fDay, fDayY, fTime, whenShort, dur, statusTag, ICON_CLOSE };
 
   render();
   if (window.Backend) boot(); else window.addEventListener('backend-ready', boot, { once: true });

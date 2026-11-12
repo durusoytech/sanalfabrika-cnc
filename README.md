@@ -7,33 +7,29 @@ Sermaye ile emeğin buluştuğu üretim platformu. Yatırımcılar profesyonelce
 
 ## Sayfalar
 
-- **Tanıtım sitesi (`index.html`):** Sade tek sayfa. Nasıl çalıştığı, kazancın nasıl oluştuğu, makine seçenekleri tablosu, güvence ve platformdan bir ekran görüntüsü. Ayrıntılar sık sorulan sorulardadır. Platform görüntüleri `assets/img/` klasöründedir.
-- **Yatırımcı platformu (`platform.html`):** Aşağıdaki üç ekran, giriş ve satın alma.
+- **Tanıtım sitesi (`index.html`):** Sade tek sayfa. Nasıl çalıştığı, kazancın nasıl oluştuğu, makine seçenekleri tablosu, güvence, haberler ve sık sorulan sorular.
+- **Yatırımcı platformu (`platform.html`):** Aşağıdaki ekranlar, giriş ve yatırım talebi. Personel için ayrıca Yönetim ekranı.
 
 ## Platform ekranları
 
-- **Fabrikalar:** Her tesiste 10 slot var. Dolu slota tıklayınca makinenin takvimi, canlı izleme ve gelir özeti açılır. Boş slota tıklayınca satın alma adımları başlar.
-- **Makinelerim:** Makine başına çalışma süresi, çıkan parça, brüt gelir, işletme ücreti dökümü ve net kazanç.
-- **Analiz:** Günlük net kâr, gelirden kâra döküm, aylık trend, kendi işi ile platform işi karşılaştırması, doluluk ısı haritası ve yatırım geri dönüşü.
+- **Tesisler:** Harita, tesis bilgisi, çalışan tezgâhlar ve yatırıma açık slotlar. Boş slot seçilerek yatırım talebi oluşturulur.
+- **Makinelerim:** Yatırımcının tezgâhları, talepleri, iş takvimi ve kazanç dökümü.
+- **Analiz:** Aylık net kazanç, günlük grafik, gelir dökümü ve tezgâh bazında kârlılık.
+- **Yönetim:** Personel için talepler, tezgâh durumları, iş kayıtları ve haberler.
 
 ## Gelir modeli
 
-Makine dakika ücreti üzerinden çalışır. Bu ücretten işletme ücreti düşülür: operatör, elektrik, bakım, takım, tesis ve sigorta. İşi makine sahibi bulduysa platform %5, platform bulduysa %20 pay alır. Fiyatlar, ücretler ve oranlar `assets/data.js` dosyasındadır.
+Makine dakika ücreti üzerinden çalışır. Bu ücretten işletme ücreti düşülür: operatör, elektrik, bakım, takım, tesis ve sigorta. İşi makine sahibi bulduysa platform %5, platform bulduysa %20 pay alır. Fiyatlar, ücretler ve oranlar Firestore'daki `machineTypes` ve `config` belgelerindedir.
 
 ## Mimari
 
-Site statik dosyalardan oluşur; şimdilik GitHub Pages'te, gerçek kullanıcılar için Firebase Hosting'de yayınlanır. Gerçek veri için ayrı bir sunucu yerine Supabase kullanılır: Postgres veritabanı, kullanıcı girişi ve otomatik API. İş kuralları Postgres fonksiyonları ve satır bazlı erişim kuralları olarak `supabase/` klasöründedir. Kurulum ve ayrıntılar için [KURULUM.md](KURULUM.md) dosyasına bakın.
+Site, giriş ve veritabanı Firebase üzerinde çalışır: Hosting, Authentication ve Cloud Firestore. Ayrı bir sunucu yoktur. Erişim yetkileri `firestore.rules` dosyasındaki kurallarla verilir. Kurulum, günlük işletme ve yayınlama adımları için [KURULUM.md](KURULUM.md) dosyasına bakın.
 
-`assets/config.js` boşsa site tarayıcıda üretilen demo verisiyle çalışır. Supabase bilgileri girilince giriş, gerçek satın alma ve kalıcı veriler açılır.
-
-## Çalıştırma
-
-Derleme adımı yoktur. Demo modu için `index.html` veya `platform.html` dosyasını tarayıcıda açmak yeterlidir.
-
-Veritabanıyla birlikte yerelde çalıştırmak için Node.js 20 veya üstü gerekir, Docker gerekmez:
+## Komutlar
 
 ```bash
-npm install
-npm run test:db
-npm run dev
+npm run dev          # yerel test ortamı (emülatör), http://localhost:5055
+npm run seed:local   # yerel ortama ilk verileri yükler
+npm run test:rules   # erişim kurallarının testleri
+npm run deploy       # siteyi ve kuralları yayınlar
 ```
