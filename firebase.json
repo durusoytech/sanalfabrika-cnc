@@ -3,7 +3,9 @@
     "public": ".",
     "ignore": [
       "firebase.json",
+      ".*",
       "**/.*",
+      "**/.*/**",
       "**/node_modules/**",
       "scripts/**",
       "supabase/**",
@@ -14,11 +16,21 @@
     "headers": [
       {
         "source": "assets/config.js",
-        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
       },
       {
         "source": "**/*.@(js|css)",
-        "headers": [{ "key": "Cache-Control", "value": "public, max-age=300" }]
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=300"
+          }
+        ]
       }
     ]
   }

@@ -59,20 +59,23 @@ Site statik dosyalardan oluşur ve Supabase'e tarayıcıdan bağlanır. Bu yüzd
 
 Depodaki `firebase.json` dosyası hazırdır. Yalnızca site dosyalarını yükler; `supabase/`, `scripts/` ve `node_modules/` yüklenmez.
 
-1. https://console.firebase.google.com adresinde Spark planında bir proje açın. Kart istenmez.
-2. Bilgisayarınızda Firebase hesabınıza giriş yapın:
+Firebase projesi açıldı: kimliği `emeksermaye`, sahibi drusoyyasin@gmail.com hesabı. Site https://emeksermaye.web.app adresinde yayında. Depodaki `.firebaserc` bu projeyi varsayılan yapar.
+
+1. Bilgisayarınızda Firebase hesabınıza giriş yapın (bir kez):
 
 ```bash
 npx firebase-tools login
 ```
 
-3. Proje kimliğinizi yazarak yayınlayın:
+2. Her değişiklikten sonra yayınlayın:
 
 ```bash
-npx firebase-tools deploy --only hosting --project PROJE-KIMLIGINIZ
+npx firebase-tools deploy --only hosting
 ```
 
-4. Komutun verdiği `https://PROJE-KIMLIGINIZ.web.app` adresini Supabase'de **Authentication > URL Configuration** sayfasına ekleyin. Site URL olarak ana adresi, Redirect URL olarak `…/platform.html` adresini yazın.
+Yayın yalnızca 12 site dosyasını yükler. `firebase.json` içindeki kurallar `.git`, `.github`, `supabase/`, `scripts/` ve `node_modules/` klasörlerini dışarıda bırakır. Yayın sonrası `found 12 files` satırını görmelisiniz; sayı çok daha büyükse kuralları kontrol edin.
+
+3. `https://emeksermaye.web.app` adresini Supabase'de **Authentication > URL Configuration** sayfasına ekleyin. Site URL olarak ana adresi, Redirect URL olarak `…/platform.html` adresini yazın.
 
 ## emeksermaye.com alan adını bağlama
 
