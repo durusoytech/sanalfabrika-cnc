@@ -1,16 +1,15 @@
 {
   "name": "emeksermaye",
   "private": true,
-  "version": "0.2.0",
-  "description": "CNC fabrikaları için dijital ikiz ve yatırımcı paneli",
+  "version": "0.3.0",
+  "description": "Emek Sermaye tanıtım sitesi ve yatırımcı platformu",
   "type": "module",
   "scripts": {
-    "test:db": "node scripts/test-db.mjs",
-    "build:sql": "node scripts/build-setup-sql.mjs",
-    "dev": "node scripts/dev-server.mjs"
-  },
-  "devDependencies": {
-    "@electric-sql/pglite": "0.5.8"
+    "dev": "firebase emulators:start --only auth,firestore,hosting --project emeksermaye",
+    "seed:local": "node tools/seed.mjs --emulator",
+    "test:rules": "firebase emulators:exec --only auth,firestore --project emeksermaye \"node tools/test-rules.mjs\"",
+    "seed": "node tools/seed.mjs",
+    "deploy": "firebase deploy --only hosting,firestore --project emeksermaye"
   },
   "engines": {
     "node": ">=20"

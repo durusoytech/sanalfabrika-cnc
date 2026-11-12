@@ -3,15 +3,19 @@
     "public": ".",
     "ignore": [
       "firebase.json",
+      "firestore.rules",
+      "firestore.indexes.json",
       ".*",
       "**/.*",
       "**/.*/**",
       "**/node_modules/**",
+      "tools/**",
       "scripts/**",
       "supabase/**",
       "package.json",
       "package-lock.json",
-      "*.md"
+      "*.md",
+      "*.log"
     ],
     "headers": [
       {
@@ -33,5 +37,29 @@
         ]
       }
     ]
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "auth": {
+    "providers": {
+      "emailPassword": true
+    }
+  },
+  "emulators": {
+    "auth": {
+      "port": 9199
+    },
+    "firestore": {
+      "port": 8185
+    },
+    "hosting": {
+      "port": 5055
+    },
+    "ui": {
+      "enabled": false
+    },
+    "singleProjectMode": true
   }
 }

@@ -1,0 +1,107 @@
+rules_version = '2';
+
+// Emek Sermaye · Firestore erişim kuralları
+//
+// Herkese açık (giriş gerekmez, yalnızca okuma): config, machineTypes, facilities, machines, news
+// Yatırımcıya özel: jobs (yalnızca kendi makinesinin işleri), investors (kendi kaydı), requests (kendi talepleri)
+// Personel: staff/{uid} belgesi olan kullanıcılar tüm verileri okur ve yönetir.
+// staff koleksiyonuna istemciden yazılamaz; personel yalnızca Firebase konsolundan tanımlanır.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function isStaff() {
+      return signedIn() && exists(/databases/$(database)/documents/staff/$(request.auth.uid));
+    }
+    function shortText(v, max) {
+      return v is string && v.size() <= max;
+    }
+
+    // ---------- herkese açık katalog ----------
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+    match /machineTypes/{axes} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+    match /facilities/{facilityId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+    match /machines/{machineId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+    match /news/{newsId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    // ---------- işler: makine sahibi ve personel ----------
+    match /jobs/{jobId} {
+      allow read: if signedIn() && (resource.data.ownerUid == request.auth.uid || isStaff());
+      allow write: if isStaff();
+    }
+
+    // ---------- yatırımcı kaydı ----------
+    match /investors/{uid} {
+      allow read: if isSelf(uid) || isStaff();
+      allow create: if isSelf(uid)
+        && request.resource.data.keys().hasOnly(['displayName', 'code', 'phone', 'createdAt'])
+        && request.resource.data.keys().hasAll(['displayName', 'code', 'createdAt'])
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.displayName.size() <= 80
+        && request.resource.data.code is string
+        && request.resource.data.code.matches('^INV-[0-9]{4}$')
+        && request.resource.data.createdAt == request.time
+        && (!('phone' in request.resource.data) || shortText(request.resource.data.phone, 30));
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'phone'])
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.displayName.size() <= 80
+        && (!('phone' in request.resource.data) || shortText(request.resource.data.phone, 30));
+      allow delete: if false;
+    }
+
+    // ---------- yatırım talepleri ----------
+    // Talep bir slotu kilitlemez. Personel talebi inceler, sözleşme ve ön ödemeden sonra makineyi tanımlar.
+    match /requests/{requestId} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isStaff());
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid', 'email', 'displayName', 'phone', 'facilityId', 'slot', 'axes', 'ownShare', 'note', 'status', 'createdAt'])
+        && request.resource.data.keys().hasAll(['uid', 'email', 'facilityId', 'axes', 'status', 'createdAt'])
+        && request.resource.data.status == 'new'
+        && request.resource.data.axes in [3, 4, 5]
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.facilityId is string
+        && exists(/databases/$(database)/documents/facilities/$(request.resource.data.facilityId))
+        && (!('slot' in request.resource.data) || shortText(request.resource.data.slot, 8))
+        && (!('displayName' in request.resource.data) || shortText(request.resource.data.displayName, 80))
+        && (!('phone' in request.resource.data) || shortText(request.resource.data.phone, 30))
+        && (!('note' in request.resource.data) || shortText(request.resource.data.note, 1000))
+        && (!('ownShare' in request.resource.data)
+            || (request.resource.data.ownShare is number && request.resource.data.ownShare >= 0 && request.resource.data.ownShare <= 1));
+      allow update: if isStaff();
+      allow delete: if isStaff()
+        || (signedIn() && resource.data.uid == request.auth.uid && resource.data.status == 'new');
+    }
+
+    // ---------- personel ----------
+    match /staff/{uid} {
+      allow read: if isSelf(uid);
+      allow write: if false;
+    }
+  }
+}

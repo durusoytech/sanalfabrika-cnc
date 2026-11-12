@@ -146,6 +146,18 @@ img { max-width: 100%; }
 .shot img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; }
 .shot figcaption { margin-top: 14px; font-size: 14.5px; color: var(--muted); }
 
+/* haberler */
+.news-item { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px 36px; padding: 34px 0; border-top: 1px solid var(--line); }
+.news-item:first-child { border-top: 0; padding-top: 0; }
+.news-item:last-child { padding-bottom: 0; }
+@media (min-width: 700px) { .news-item.has-photo { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); } }
+.news-photo img { display: block; width: 100%; height: auto; border-radius: 10px; background: var(--surface-2); }
+.news-text time { display: block; font-size: 14.5px; color: var(--muted); }
+.news-text h3 { margin-top: 6px; font-size: 24px; line-height: 1.2; letter-spacing: -0.015em; }
+.news-text p { margin-top: 12px; color: var(--ink-2); max-width: 38em; }
+.news-text .credit { display: block; margin-top: 16px; font-size: 13px; color: var(--muted); }
+.news-text .credit a { color: inherit; }
+
 /* sık sorulan sorular */
 .faq-group + .faq-group { margin-top: 48px; }
 .faq-group > h3 { font: 500 15px/1.4 var(--font-body); color: var(--muted); padding-bottom: 10px; border-bottom: 1px solid var(--line-strong); }
