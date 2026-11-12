@@ -2,8 +2,8 @@
 
 Sermaye ile emeğin buluştuğu üretim platformu. Yatırımcılar profesyonelce işletilen fabrikalardaki boş slotlara 3, 4 veya 5 eksen CNC alır. Makine gerçek siparişler için parça üretir, yatırımcı iş takvimini, canlı görüntüyü ve kazancını platformdan izler.
 
-**Alan adı:** emeksermaye.com (bağlantı adımları KURULUM.md dosyasında)
-**Geçici adres:** https://durusoytech.github.io/sanalfabrika-cnc/
+**Site:** https://emeksermaye.com (Firebase Hosting, `emeksermaye` projesi)
+**Yedek adresler:** https://emeksermaye.web.app ve https://durusoytech.github.io/sanalfabrika-cnc/
 
 ## Sayfalar
 

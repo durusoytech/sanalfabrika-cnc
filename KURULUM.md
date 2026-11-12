@@ -88,12 +88,19 @@ Site iki sayfadan oluşur: ana sayfa (`index.html`) tanıtım sitesidir, `platfo
 
 **Alan adını sitenin yayınlandığı yere göre yönlendirin, ikisine birden yönlendirmeyin.**
 
-### Firebase Hosting ile (gerçek kullanıcılar için önerilen)
+### Firebase Hosting ile (kullanılan yöntem)
 
-1. Firebase konsolunda **Hosting > Add custom domain** deyip `emeksermaye.com` yazın.
-2. Firebase'in verdiği TXT ve A kayıtlarını alan adını aldığınız firmanın DNS panelinden ekleyin.
-3. `www.emeksermaye.com` için de aynı adımı tekrarlayın veya ana adrese yönlendirin.
-4. Doğrulama ve SSL sertifikası genellikle birkaç saat içinde tamamlanır.
+emeksermaye.com, 12 Kasım 2026'da Firebase Hosting'deki `emeksermaye` projesine bağlandı. `www.emeksermaye.com` ana adrese yönlendirilir. Alan adı Turkticaret.net'te kayıtlı, DNS kayıtları da Turkticaret panelinden yönetiliyor.
+
+| Ad | Tür | Değer | Not |
+|---|---|---|---|
+| `@` | A | `199.36.158.100` | Firebase Hosting |
+| `@` | TXT | `hosting-site=emeksermaye` | Firebase sahiplik doğrulaması |
+| `www` | CNAME | `emeksermaye.web.app` | www adresi, ana adrese yönlenir |
+| `@` | MX | `mx.turkticaret.net` | E-posta, değiştirmeyin |
+| `@` | TXT | `v=spf1 include:_spf.turkticaret.net ~all` | E-posta, değiştirmeyin |
+
+Turkticaret'in park sayfasına giden eski A kaydı (`31.186.11.254`) silindi. SSL sertifikasını Firebase kendisi alır ve yeniler. Yeniden kurmanız gerekirse Firebase konsolunda **Hosting > Add custom domain** bölümünden alan adını ekleyip yukarıdaki kayıtları girmeniz yeterlidir.
 
 ### GitHub Pages ile (prototip için)
 
