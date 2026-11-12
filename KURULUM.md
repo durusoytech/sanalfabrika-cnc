@@ -108,7 +108,7 @@ Firebase konsolunda **Firestore** bölümünden değiştirin. Değişiklik sitey
 npm run deploy
 ```
 
-Komut site dosyalarını ve erişim kurallarını yayınlar. Çıktıda `found 14 files` civarında bir sayı görmelisiniz. Sayı çok daha büyükse `firebase.json` içindeki hariç tutma kurallarını kontrol edin.
+Komut site dosyalarını ve erişim kurallarını yayınlar. Çıktıda `found 15 files` civarında bir sayı görmelisiniz. Sayı çok daha büyükse `firebase.json` içindeki hariç tutma kurallarını kontrol edin.
 
 ## Yerel geliştirme ve test
 
