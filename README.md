@@ -7,7 +7,7 @@ Sermaye ile emeğin buluştuğu üretim platformu. Yatırımcılar profesyonelce
 
 ## Sayfalar
 
-- **Tanıtım sitesi (`index.html`):** Sermayenin ne yaptığı, bir dakikalık ücretin nasıl paylaşıldığı, makine seçenekleri, kazanç hesaplayıcı, tesisler, güvenceler ve riskler, sık sorulan sorular.
+- **Tanıtım sitesi (`index.html`):** Sade tek sayfa. Nasıl çalıştığı, kazancın nasıl oluştuğu, makine seçenekleri tablosu, güvence ve platformdan bir ekran görüntüsü. Ayrıntılar sık sorulan sorulardadır. Platform görüntüleri `assets/img/` klasöründedir.
 - **Yatırımcı platformu (`platform.html`):** Aşağıdaki üç ekran, giriş ve satın alma.
 
 ## Platform ekranları
