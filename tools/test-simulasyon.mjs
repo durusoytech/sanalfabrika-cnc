@@ -1,0 +1,64 @@
+// Simülasyon sayfasının hesap modelini sınar: npm run test:sim
+// Beklenen değerler örnek girdilerle elle hesaplanmıştır.
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+const ctx = { window: {} }; ctx.globalThis = ctx;
+vm.runInNewContext(readFileSync(new URL('../assets/simulasyon.js', import.meta.url), 'utf8'), ctx);
+const { defaults, compute, dayState } = ctx.window.EmekSimModel;
+let fail = 0;
+const near = (name, got, want, tol = 0.01) => { const ok = Math.abs(got - want) <= tol; if (!ok) fail++; console.log(ok ? '  tamam' : '  HATA ', name, ok ? '' : `beklenen ${want}, bulunan ${got}`); };
+const yes = (name, cond) => { if (!cond) fail++; console.log(cond ? '  tamam' : '  HATA ', name); };
+const clone = o => JSON.parse(JSON.stringify(o));
+
+const d = defaults(), r = compute(d);
+console.log('Örnek değerler');
+near('cihaz günde 16 saat çalışır', r.hours, 16);
+near('slot kirası: aylık gider payı', r.rentFromMonthly, 8000 / 10);
+near('slot kirası: kurulum payı', r.rentFromSetup, 135000 / 60 / 10);
+near('slot kirası', r.rent, 1025);
+near('aylık sigorta', r.ins, 2100 / 12);
+near('iş yokken aylık gider (kira + sigorta + bakım)', r.fixed, 1025 + 175 + 450);
+near('iş olan günde operatör (2 vardiya, 2 cihaza 1 operatör)', r.opDay, 2 * 60 / 2);
+near('iş olan günde elektrik (15 kWh × 16 saat × $0,12)', r.elecDay, 15 * 16 * 0.12);
+near('iş olan günde takım (16 saat × $3)', r.toolDay, 48);
+near('iş olan günün gideri', r.varDay, 60 + 28.8 + 48);
+near('işler 19 gün sürer', r.jobDays, 19);
+near('19 gün dolu, 7 gün boş', r.busy * 100 + r.idle, 1907);
+near('işlerden gelir', r.revenue, 7200 + 5100 + 3600);
+near('platform payı (%5 ve %20)', r.share, 360 + 1020 + 720);
+near('operatör gideri yalnızca iş günlerinde', r.cost.operator, 19 * 60);
+near('aylık kazanç', r.net, 15900 - 2100 - 19 * 136.8 - 1650);
+near('cihaz yatırımı', r.invest, 216500);
+near('geri dönüş (ay)', r.paybackMonths, 216500 / 9550.8, 1e-6);
+near('ilk işin yatırımcıya kalanı', r.jobs[0].contrib, 7200 - 360 - 8 * 136.8);
+
+console.log('Gün gün');
+const g1 = dayState(r, 1);
+yes('1. gün ilk iş cihazda', g1.job && g1.job.i === 0 && g1.jobDay === 1);
+const g10 = dayState(r, 10);
+yes('10. gün ikinci işin 2. günü', g10.job && g10.job.i === 1 && g10.jobDay === 2);
+near('10. güne kadar gelir', g10.cum.rev, 7200 + 2 * 850);
+near('10. güne kadar net', g10.cum.net, 8900 - (360 + 1700 * 0.2) - 10 * 136.8 - 10 * 1650 / 26);
+const g20 = dayState(r, 20);
+yes('20. gün iş yok', g20.job === null && g20.jobDay === 0);
+near('20. günde yalnızca sabit gider artar', g20.cum.net - dayState(r, 19).cum.net, -1650 / 26);
+near('ayın son günü toplam = aylık kazanç', dayState(r, 26).cum.net, r.net);
+
+console.log('Kurallar');
+const none = compute({ ...clone(d), jobs: [] });
+near('iş yoksa yatırımcı yalnızca kira, sigorta ve bakım öder', none.net, -1650);
+yes('iş yoksa operatör, elektrik, takım gideri yok', none.cost.variable === 0);
+const over = compute({ ...clone(d), jobs: [...clone(d).jobs, { name: 'Uzun iş', days: 10, revenue: 10000, source: 'own', rate: 5 }] });
+near('ayı aşan iş: taşan gün', over.over, 3);
+near('ayı aşan iş: bu aya sayılan gelir', over.jobs[3].rev, 7000);
+near('ayı aşan işte dolu gün ayın tamamı', over.busy, 26);
+const three = compute({ ...clone(d), shifts: 3 });
+near('3 vardiyada operatör gideri', three.opDay, 90);
+near('3 vardiyada elektrik 24 saat', three.elecDay, 15 * 24 * 0.12);
+yes('24 saati aşan vardiya bildirilir', compute({ ...clone(d), shifts: 3, shiftHours: 10 }).overHours === true && !r.overHours);
+yes('slot sayısı sıfırsa kira yok', compute({ ...clone(d), fac: { ...d.fac, slots: 0 } }).rent === 0);
+yes('platform payı %100 üstü kabul edilmez', compute({ ...clone(d), jobs: [{ name: 'x', days: 1, revenue: 100, source: 'own', rate: 250 }] }).share === 100);
+const empty = compute({});
+yes('boş girdide sayı hatası yok', [empty.net, empty.rent, empty.fixedDay, empty.util, empty.yearly].every(Number.isFinite) && empty.paybackMonths === Infinity);
+console.log(fail ? `\n${fail} sınama başarısız` : '\nTüm sınamalar geçti');
+process.exit(fail ? 1 : 0);

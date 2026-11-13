@@ -51,7 +51,7 @@
   }
 
   /* ---------- durum ---------- */
-  const VIEWS = ['tesisler', 'makinelerim', 'analiz', 'hesaplama', 'yonetim'];
+  const VIEWS = ['tesisler', 'makinelerim', 'analiz', 'hesaplama', 'simulasyon', 'yonetim'];
   const state = {
     view: 'tesisler', facility: null, machineId: null, week: 0, selJob: null,
     month: SF.startOfMonth(Date.now()), anMachine: 'all',
@@ -68,8 +68,10 @@
     $$('.main-nav a').forEach(a => a.setAttribute('aria-current', a.dataset.view === navView() ? 'page' : 'false'));
     const adminLink = $('#nav-admin');
     if (adminLink) adminLink.hidden = state.booting || !SF.ME.staff;
-    const calcLink = $('#nav-calc');
-    if (calcLink) calcLink.hidden = state.booting || !SF.ME.signedIn;
+    ['#nav-calc', '#nav-sim'].forEach(id => { const l = $(id); if (l) l.hidden = state.booting || !SF.ME.signedIn; });
+    // dar ekranda menü yana kayar; açık sekme görünür kalsın
+    const nav = $('.main-nav'), cur = nav && nav.querySelector('[aria-current="page"]');
+    if (cur && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = cur.offsetLeft - (nav.clientWidth - cur.offsetWidth) / 2;
     const box = $('#account');
     if (state.booting || state.error) { box.innerHTML = ''; return; }
     if (!SF.ME.signedIn) {
@@ -110,11 +112,13 @@
     }
     if (state.view === 'yonetim' && !(SF.ME.staff && window.EmekAdmin)) state.view = 'tesisler';
     if (state.view === 'hesaplama' && !window.EmekHesap) state.view = 'tesisler';
+    if (state.view === 'simulasyon' && !window.EmekSim) state.view = 'tesisler';
     const v = state.view;
     if (v === 'tesisler') { main.innerHTML = viewFacilities(); mountMap(); }
     else if (!SF.ME.signedIn) main.innerHTML = signInPrompt(v);
     else if (v === 'yonetim') main.innerHTML = window.EmekAdmin.view();
     else if (v === 'hesaplama') main.innerHTML = window.EmekHesap.view();
+    else if (v === 'simulasyon') main.innerHTML = window.EmekSim.view();
     else if (v === 'makinelerim') main.innerHTML = viewMine();
     else if (v === 'makine') main.innerHTML = viewMachine();
     else { main.innerHTML = viewAnalytics(); drawCharts(); }
@@ -125,8 +129,8 @@
         <button class="btn btn-primary" data-action="view" data-view="${view}">${esc(cta)}</button></section>`;
   }
   function signInPrompt(view) {
-    const title = { analiz: 'Analiz', hesaplama: 'Hesaplama' }[view] || 'Makinelerim';
-    const what = { analiz: 'Kârlılık analizinizi görmek', hesaplama: 'Hesaplama aracını kullanmak' }[view] || 'Tezgâhlarınızı ve kazancınızı görmek';
+    const title = { analiz: 'Analiz', hesaplama: 'Hesaplama', simulasyon: 'Simülasyon' }[view] || 'Makinelerim';
+    const what = { analiz: 'Kârlılık analizinizi görmek', hesaplama: 'Hesaplama aracını kullanmak', simulasyon: 'Simülasyonu kullanmak' }[view] || 'Tezgâhlarınızı ve kazancınızı görmek';
     return `<section class="page-head"><h1>${title}</h1></section>
       <section class="empty"><h2>Giriş yapın</h2>
         <p>${what} için hesabınıza giriş yapın. Tesisleri giriş yapmadan da inceleyebilirsiniz.</p>
@@ -751,11 +755,11 @@
     if (!started || state.modal || state.error || document.hidden) return;
     window.Backend.load().then(() => {
       if (state.view === 'tesisler') renderFacilityBody();
-      else if (!['analiz', 'yonetim', 'hesaplama'].includes(state.view)) render();
+      else if (!['analiz', 'yonetim', 'hesaplama', 'simulasyon'].includes(state.view)) render();
     }).catch(() => { /* bir sonraki denemede */ });
   }, 5 * 60 * 1000);
 
-  // Yönetim ekranı (assets/admin.js) ve hesaplama aracı (assets/hesap.js) bu yardımcıları kullanır
+  // Yönetim ekranı (assets/admin.js), hesaplama (assets/hesap.js) ve simülasyon (assets/simulasyon.js) bu yardımcıları kullanır
   window.EmekPlatform = { state, render, toast, showModal, closeModal, esc, usd, usd2, pct, num, fDay, fDayY, fTime, whenShort, dur, statusTag, ICON_CLOSE };
 
   render();

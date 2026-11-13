@@ -10,7 +10,8 @@
     "test:rules": "firebase emulators:exec --only auth,firestore --project emeksermaye \"node tools/test-rules.mjs\"",
     "seed": "node tools/seed.mjs",
     "deploy": "firebase deploy --only hosting,firestore --project emeksermaye",
-    "test:hesap": "node tools/test-hesap.mjs"
+    "test:hesap": "node tools/test-hesap.mjs",
+    "test:sim": "node tools/test-simulasyon.mjs"
   },
   "engines": {
     "node": ">=20"
