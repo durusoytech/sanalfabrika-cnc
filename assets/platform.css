@@ -368,10 +368,12 @@ button.mrow:hover { background: var(--surface-2); }
   .calc-row, .calc-cols { grid-template-columns: minmax(0, 1fr) 54px 96px 32px; }
   .calc-row:not(.calc-row-3), .calc-cols-2 { grid-template-columns: minmax(0, 1fr) 104px 32px; }
   .calc-mhead { display: none; }
-  .calc-m { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; }
+  .calc-m { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; }
   .calc-m .lbl { position: static; width: auto; height: auto; clip: auto; overflow: visible; white-space: nowrap; font-size: 12.5px; }
-  .calc-m > .field:first-child { grid-column: 1 / 3; grid-row: 1; }
-  .calc-m .icon-btn { grid-column: 3; grid-row: 1; justify-self: end; }
+  .calc-m > .field { grid-column: span 2; }
+  .calc-m > .field:first-child { grid-column: 1 / 6; grid-row: 1; }
+  .calc-m > .field:nth-child(5), .calc-m > .field:nth-child(6) { grid-column: span 3; }
+  .calc-m .icon-btn { grid-column: 6; grid-row: 1; justify-self: end; }
 }
 @media (max-width: 899px) { .calc-two > div + div { margin-top: 36px; } }
 #hesap-types .tbl tbody th { white-space: nowrap; }
