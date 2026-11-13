@@ -51,7 +51,7 @@
   }
 
   /* ---------- durum ---------- */
-  const VIEWS = ['tesisler', 'makinelerim', 'analiz', 'yonetim'];
+  const VIEWS = ['tesisler', 'makinelerim', 'analiz', 'hesaplama', 'yonetim'];
   const state = {
     view: 'tesisler', facility: null, machineId: null, week: 0, selJob: null,
     month: SF.startOfMonth(Date.now()), anMachine: 'all',
@@ -68,6 +68,8 @@
     $$('.main-nav a').forEach(a => a.setAttribute('aria-current', a.dataset.view === navView() ? 'page' : 'false'));
     const adminLink = $('#nav-admin');
     if (adminLink) adminLink.hidden = state.booting || !SF.ME.staff;
+    const calcLink = $('#nav-calc');
+    if (calcLink) calcLink.hidden = state.booting || !SF.ME.signedIn;
     const box = $('#account');
     if (state.booting || state.error) { box.innerHTML = ''; return; }
     if (!SF.ME.signedIn) {
@@ -107,10 +109,12 @@
       return;
     }
     if (state.view === 'yonetim' && !(SF.ME.staff && window.EmekAdmin)) state.view = 'tesisler';
+    if (state.view === 'hesaplama' && !window.EmekHesap) state.view = 'tesisler';
     const v = state.view;
     if (v === 'tesisler') { main.innerHTML = viewFacilities(); mountMap(); }
     else if (!SF.ME.signedIn) main.innerHTML = signInPrompt(v);
     else if (v === 'yonetim') main.innerHTML = window.EmekAdmin.view();
+    else if (v === 'hesaplama') main.innerHTML = window.EmekHesap.view();
     else if (v === 'makinelerim') main.innerHTML = viewMine();
     else if (v === 'makine') main.innerHTML = viewMachine();
     else { main.innerHTML = viewAnalytics(); drawCharts(); }
@@ -121,10 +125,11 @@
         <button class="btn btn-primary" data-action="view" data-view="${view}">${esc(cta)}</button></section>`;
   }
   function signInPrompt(view) {
-    const title = view === 'analiz' ? 'Analiz' : 'Makinelerim';
+    const title = { analiz: 'Analiz', hesaplama: 'Hesaplama' }[view] || 'Makinelerim';
+    const what = { analiz: 'Kârlılık analizinizi görmek', hesaplama: 'Hesaplama aracını kullanmak' }[view] || 'Tezgâhlarınızı ve kazancınızı görmek';
     return `<section class="page-head"><h1>${title}</h1></section>
       <section class="empty"><h2>Giriş yapın</h2>
-        <p>${view === 'analiz' ? 'Kârlılık analizinizi' : 'Tezgâhlarınızı ve kazancınızı'} görmek için hesabınıza giriş yapın. Tesisleri giriş yapmadan da inceleyebilirsiniz.</p>
+        <p>${what} için hesabınıza giriş yapın. Tesisleri giriş yapmadan da inceleyebilirsiniz.</p>
         <div class="row-actions"><button class="btn btn-primary" data-action="auth" data-mode="signin">Giriş yap</button>
           <button class="btn btn-plain" data-action="auth" data-mode="signup">Hesap oluştur</button></div></section>`;
   }
@@ -746,12 +751,12 @@
     if (!started || state.modal || state.error || document.hidden) return;
     window.Backend.load().then(() => {
       if (state.view === 'tesisler') renderFacilityBody();
-      else if (state.view !== 'analiz' && state.view !== 'yonetim') render();
+      else if (!['analiz', 'yonetim', 'hesaplama'].includes(state.view)) render();
     }).catch(() => { /* bir sonraki denemede */ });
   }, 5 * 60 * 1000);
 
-  // Yönetim ekranı (assets/admin.js) bu yardımcıları kullanır
-  window.EmekPlatform = { state, render, toast, showModal, closeModal, esc, usd, pct, num, fDay, fDayY, fTime, whenShort, dur, statusTag, ICON_CLOSE };
+  // Yönetim ekranı (assets/admin.js) ve hesaplama aracı (assets/hesap.js) bu yardımcıları kullanır
+  window.EmekPlatform = { state, render, toast, showModal, closeModal, esc, usd, usd2, pct, num, fDay, fDayY, fTime, whenShort, dur, statusTag, ICON_CLOSE };
 
   render();
   if (window.Backend) boot(); else window.addEventListener('backend-ready', boot, { once: true });

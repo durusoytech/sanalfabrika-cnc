@@ -19,6 +19,7 @@ Logo dosyaları `assets/logo/` klasöründedir: yatay ve dikey logo, amblem, sek
 - **Tesisler:** Harita, tesis bilgisi, çalışan tezgâhlar ve yatırıma açık slotlar. Boş slot seçilerek yatırım talebi oluşturulur.
 - **Makinelerim:** Yatırımcının tezgâhları, talepleri, iş takvimi ve kazanç dökümü.
 - **Analiz:** Aylık net kazanç, günlük grafik, gelir dökümü ve tezgâh bazında kârlılık.
+- **Hesaplama:** Giriş yapan herkes için. Slot sayısı, tezgâhlar, çalışma düzeni, ekip, aylık ve tek seferlik giderler ile platform payı girilir; şirketin kârı, yatırımcının neti, gereken operatör ve planlamacı sayısı, başabaş doluluk ve geri dönüş süreleri hesaplanır. Girilen değerler yalnızca o tarayıcıda saklanır. Hesap modelinin sınamaları: `npm run test:hesap`.
 - **Yönetim:** Personel için talepler, tezgâh durumları, iş kayıtları ve haberler.
 
 ## Gelir modeli

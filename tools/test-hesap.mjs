@@ -1,0 +1,52 @@
+// Hesaplama aracının hesap modelini sınar: node tools/test-hesap.mjs
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+const ctx = { window: {} }; ctx.globalThis = ctx;
+vm.runInNewContext(readFileSync(new URL('../assets/hesap.js', import.meta.url), 'utf8'), ctx);
+const { defaults, compute } = ctx.window.EmekHesapModel;
+let fail = 0;
+const near = (name, got, want, tol = 0.01) => { const ok = Math.abs(got - want) <= tol; if (!ok) fail++; console.log(ok ? '  tamam' : '  HATA ', name, ok ? '' : `beklenen ${want}, bulunan ${got}`); };
+const yes = (name, cond) => { if (!cond) fail++; console.log(cond ? '  tamam' : '  HATA ', name); };
+
+const d = defaults(), r = compute(d);
+console.log('Örnek değerler');
+near('tezgâh sayısı', r.N, 8);
+near('aylık kapasite (saat)', r.capHours, 416);
+near('dolu saat', r.runHours, 270.4);
+near('ciro', r.gross, 133848);
+near('işletme ücreti geliri', r.op, 55323.84);
+near('ortalama platform payı', r.fee, 0.155, 1e-9);
+near('platform payı', r.pf, 20746.44);
+near('yatırımcılara kalan', r.investorNet, 133848 - 55323.84 - 20746.44);
+near('operatör', r.people.operators, 8);
+near('planlamacı', r.people.planners, 1);
+near('ekip gideri', r.cost.staff, 8 * 1600 + 2400 + 3000 + 1800);
+near('elektrik', r.cost.elec, 3244.8);
+near('takım', r.cost.tool, 6489.6);
+near('bakım', r.cost.maint, 4162.5);
+near('sigorta', r.cost.ins, 1387.5);
+near('toplam gider', r.cost.total, 42384.4);
+near('şirket kârı', r.profit, 33685.88);
+near('başabaş doluluk', r.breakEven, 32650 / (76070.28 / 0.65 - 9734.4 / 0.65), 1e-6);
+near('tesis kurulumu', r.facility, 135000);
+near('tezgâh yatırımı', r.machinesInvest, 3 * 109500 + 3 * 216500 + 2 * 369500);
+near('4 eksen yatırımcı neti', r.types[1].net, 16224 * (1 - 0.42 - 0.155));
+near('4 eksen geri dönüş (yıl)', r.types[1].paybackYears, 216500 / (16224 * 0.425 * 12), 1e-6);
+
+console.log('Tutarlılık');
+near('ciro = yatırımcı + işletme ücreti + platform payı', r.investorNet + r.op + r.pf, r.gross);
+near('tip maliyetlerinin toplamı = toplam gider', r.types.reduce((a, t) => a + t.costMin * r.minutes * t.count, 0), r.cost.total);
+near('başabaş dolulukta kâr sıfır', compute({ ...d, util: r.breakEven * 100 }).profit, 0, 0.5);
+yes('doluluk artınca kâr artar', compute({ ...d, util: 80 }).profit > r.profit);
+yes('slot aşımı bildirilir', compute({ ...d, slots: 6 }).free === -2);
+
+console.log('Sınır durumlar');
+const z = compute({ ...d, machines: [] });
+yes('tezgâh yokken sayı hatası yok', [z.gross, z.profit, z.investorOne, z.margin, z.investorYearly].every(Number.isFinite) && z.costMin === null);
+const u0 = compute({ ...d, util: 0 });
+yes('doluluk sıfırken ciro sıfır, maliyet/dk boş', u0.gross === 0 && u0.costMin === null && u0.types[0].paybackYears === Infinity);
+yes('boş ve hatalı girişler sıfır sayılır', compute({ ...d, rent: '', elecHour: 'abc', toolHour: -5 }).cost.total === r.cost.total - 5000 - 3244.8 - 6489.6);
+yes('operatör oranı sıfırsa operatör yok', compute({ ...d, perOperator: 0 }).people.operators === 0);
+yes('zararda geri dönüş yok', compute({ ...d, rent: 500000 }).facilityPaybackMonths === Infinity);
+console.log(fail ? `\n${fail} sınama başarısız` : '\nTüm sınamalar geçti');
+process.exit(fail ? 1 : 0);
