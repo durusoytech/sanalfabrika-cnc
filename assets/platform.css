@@ -487,3 +487,31 @@ button.mrow:hover { background: var(--surface-2); }
   .calc-rate { grid-template-columns: minmax(0, 1fr) 110px; }
   .calc-rate small { grid-column: 1 / -1; margin-top: -2px; }
 }
+
+/* hesaplama: yatırımcı ve platform hesabı */
+.calc-period { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 9px; padding: 3px; margin-bottom: 20px; }
+.calc-period button { border: 0; background: none; padding: 7px 14px; min-height: 36px; border-radius: 6px; font: 600 14px var(--font-body); color: var(--ink-2); cursor: pointer; }
+.calc-period button:hover { color: var(--ink); }
+.calc-period button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.calc-stmt + .calc-stmt { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line-strong); }
+.calc-stmt-head { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; }
+.calc-stmt h2 { font-size: 21px; letter-spacing: -0.015em; }
+.calc-stmt h3 { font: 600 13.5px var(--font-body); color: var(--muted); margin: 16px 0 2px; }
+.calc-stmt-tag { font-size: 13.5px; color: var(--muted); }
+.calc-view select { font: 500 14.5px var(--font-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px; padding: 7px 10px; max-width: 100%; }
+.calc-view select:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+.calc-paid { margin: 14px 0 0; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; padding: 12px 14px; background: var(--surface-2); border-radius: 8px; }
+.calc-paid dt { font-size: 14.5px; font-weight: 600; color: var(--ink-2); }
+.calc-paid dd { margin: 0; font: 700 22px/1.2 var(--font-display); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.calc-paid small { flex-basis: 100%; font-size: 13px; color: var(--muted); }
+.calc-lines { width: 100%; border-collapse: collapse; font-size: 14.5px; font-variant-numeric: tabular-nums; }
+.calc-lines th { text-align: left; font-weight: 400; color: var(--ink-2); padding: 5px 8px 5px 0; }
+.calc-lines th small { color: var(--muted); font-size: 12.5px; margin-left: 4px; }
+.calc-lines td { text-align: right; padding: 5px 0; white-space: nowrap; font-weight: 500; color: var(--ink); }
+.calc-net { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--line); }
+.calc-net span { font-weight: 600; font-size: 15px; }
+.calc-net b { font: 700 clamp(22px, 2.4vw, 28px)/1.15 var(--font-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.calc-sub { margin: 6px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--muted); }
+.calc-out .calc-facts { margin-top: 20px; }
+.calc-gap { margin-top: clamp(32px, 4vw, 48px); }
+@media (min-width: 981px) { .calc-out { max-height: calc(100vh - 112px); overflow-y: auto; overscroll-behavior: contain; } }
