@@ -1,27 +1,29 @@
 /* Emek Sermaye · hesaplama aracı
    Bir tesisin günlük ve aylık gelirini, giderini, gereken ekibi ve kârını hesaplar.
-   Hesap gün üzerinden yapılır. Tezgâh ücreti, elektrik ve takım gideri 24 saatlik girilir; tezgâh günde
-   vardiya sayısı × vardiya süresi kadar çalışır ve bu tutarlar çalışılan saate göre hesaplanır.
-   Ekip ücretleri kişi başına bir vardiyalık (günlük) ücrettir.
+   Hesap gün üzerinden yapılır. Tezgâh dolu bir günde vardiya sayısı × vardiya süresi kadar çalışır.
+   Gelir: her tezgâh tipinin saatlik iş ücreti × çalışma saati × dolu gün. Dolu gün = ayda çalışma günü × doluluk.
+   Elektrik ve takım gideri 24 saatlik girilir, çalışılan saate göre hesaplanır.
+   Operatör ve planlamacı yalnızca dolu günlerde ücret alır; doluluk sıfırsa bu ücretler de sıfırdır.
+   Diğer ekip, kira, bakım, sigorta ve diğer giderler doluluktan bağımsızdır.
    Kira ve diğer giderler aylık, sigorta yıllık girilir; günlük karşılıkları ayda çalışma gününe bölünerek bulunur.
    Model: ciro = yatırımcılara kalan + işletme giderleri + platform payı.
    İşletme giderleri girilen gerçek giderlerdir ve yatırımcının kazancından düşülür; şirketin kârı platform payıdır.
    Girilen değerler yalnızca bu tarayıcıda saklanır, sunucuya gönderilmez. */
 (function () {
   'use strict';
-  const KEY = 'emek-hesap-v3', OLD_KEY = 'emek-hesap-v2';
+  const KEY = 'emek-hesap-v4', KEY_V3 = 'emek-hesap-v3', KEY_V2 = 'emek-hesap-v2';
   const n0 = v => { const n = typeof v === 'number' ? v : parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) && n > 0 ? n : 0; };
   const sum = (list, fn) => list.reduce((a, x) => a + fn(x), 0);
 
   /* ---------- başlangıç değerleri ----------
-     Tezgâh fiyatları sitedeki makine tiplerinden gelir. 24 saatlik ücret, dakika ücretinin 1.440 dakikayla
-     çarpılıp 10 dolara yuvarlanmasıdır. Sigorta fiyatın %1'idir.
+     Tezgâh fiyatları sitedeki makine tiplerinden gelir. Saatlik iş ücreti, sitedeki dakika ücretinin 60 katıdır.
+     Sigorta fiyatın %1'idir.
      Ekip, kira ve kurulum rakamları örnektir. */
   const FALLBACK = { 3: { price: 105000, installFee: 4500, rate: 0.75 }, 4: { price: 210000, installFee: 6500, rate: 1 }, 5: { price: 360000, installFee: 9500, rate: 1.5 } };
   function defaults(types) {
     const row = (axes, count) => {
       const t = types && types[axes] && types[axes].rate ? types[axes] : FALLBACK[axes];
-      return { name: axes + ' eksen', count, price: t.price, install: t.installFee, rate24: Math.round(t.rate * 1440 / 10) * 10, insYear: Math.round(t.price / 100 / 50) * 50 };
+      return { name: axes + ' eksen', count, price: t.price, install: t.installFee, hourly: Math.round(t.rate * 60), insYear: Math.round(t.price / 100 / 50) * 50 };
     };
     return {
       slots: 8,
@@ -52,6 +54,13 @@
     return x;
   }
 
+  // v3'te tezgâh satırında 24 saatlik ücret vardı; v4'te saatlik iş ücreti girilir.
+  function migrateV3(old) {
+    const x = Object.assign({}, old);
+    x.machines = (old.machines || []).map(m => { const o = Object.assign({}, m); o.hourly = Math.round(n0(m.rate24) / 24 * 100) / 100; delete o.rate24; return o; });
+    return x;
+  }
+
   /* ---------- hesap ---------- */
   function compute(x) {
     const slots = Math.floor(n0(x.slots));
@@ -61,7 +70,7 @@
     const util = Math.min(100, n0(x.util)) / 100;
     const busy = days * util;                          // tezgâh başına ayda dolu gün
     const daily = v => (days ? v / days : 0);          // aylık tutarın ortalama bir çalışma günündeki karşılığı
-    const ms = (x.machines || []).map(m => ({ name: m.name, count: Math.floor(n0(m.count)), price: n0(m.price), install: n0(m.install), rate24: n0(m.rate24), dayRate: n0(m.rate24) * ratio, insYear: n0(m.insYear) }));
+    const ms = (x.machines || []).map(m => ({ name: m.name, count: Math.floor(n0(m.count)), price: n0(m.price), install: n0(m.install), hourly: n0(m.hourly), dayRate: n0(m.hourly) * workHours, insYear: n0(m.insYear) }));
     const N = sum(ms, m => m.count);
     const value = sum(ms, m => m.count * m.price);
 
@@ -74,13 +83,13 @@
     const others = sum(staffRows, s => s.count);
     const people = { operators, opPerShift, planners, others, total: operators + planners + others };
 
-    // aylık giderler: günlük ücretler ayda çalışma günüyle, dolu güne bağlı giderler dolu günle çarpılır
+    // aylık giderler: operatör, planlamacı, elektrik ve takım dolu günle; diğer ekip ayda çalışma günüyle çarpılır
     const elecDay = n0(x.elec24) * ratio, toolDay = n0(x.tool24) * ratio;   // dolu bir günde, tezgâh başına
     const perBusyDay = elecDay + toolDay;
     const maint = n0(x.maintPct) / 100;
     const cost = {
-      operators: operators * n0(x.operatorDay) * days,
-      planners: planners * n0(x.plannerDay) * days,
+      operators: operators * n0(x.operatorDay) * busy,
+      planners: planners * n0(x.plannerDay) * busy,
       others: sum(staffRows, s => s.count * s.day) * days,
       rent: n0(x.rent),
       elec: N * busy * elecDay,
@@ -91,7 +100,7 @@
     };
     cost.staff = cost.operators + cost.planners + cost.others;
     cost.total = cost.staff + cost.rent + cost.elec + cost.tool + cost.maint + cost.ins + cost.other;
-    const fixed = cost.total - cost.elec - cost.tool;                  // doluluktan bağımsız giderler
+    const fixed = cost.total - cost.elec - cost.tool - cost.operators - cost.planners;   // doluluktan bağımsız giderler
     const shared = N ? (cost.staff + cost.rent + cost.other) / N : 0;   // tezgâhlara eşit bölünen giderler
 
     // gelir ve paylaşım
@@ -102,7 +111,7 @@
       const gross = m.dayRate * busy, pf = gross * fee, net = gross - pf - opCost;
       const invest = m.price + m.install;
       return {
-        name: m.name, count: m.count, rate24: m.rate24, dayRate: m.dayRate, insYear: m.insYear, invest, gross, pf, opCost, net,
+        name: m.name, count: m.count, hourly: m.hourly, dayRate: m.dayRate, insYear: m.insYear, invest, gross, pf, opCost, net,
         pfDay: m.dayRate * fee,
         costDay: busy ? opCost / busy : null,
         netDay: busy ? net / busy : null,
@@ -118,8 +127,9 @@
     const facility = sum(x.oneTime || [], r => n0(r.amount));
 
     // başabaş doluluk: yatırımcının zarar etmediği en düşük doluluk.
-    // Ciro ve dolu güne bağlı giderler dolulukla doğru orantılıdır, diğer giderler sabittir.
-    const fullNet = sum(ms, m => m.count * days * m.dayRate) * (1 - fee) - N * days * perBusyDay;
+    // Ciro, operatör, planlamacı, elektrik ve takım dolulukla doğru orantılıdır; diğer giderler sabittir.
+    const fullNet = sum(ms, m => m.count * days * m.dayRate) * (1 - fee) - N * days * perBusyDay
+      - (operators * n0(x.operatorDay) + planners * n0(x.plannerDay)) * days;
     const breakEven = N && fullNet > 0 ? fixed / fullNet : Infinity;
 
     return {
@@ -139,7 +149,7 @@
     };
   }
 
-  window.EmekHesapModel = { defaults, compute, migrateV2 };
+  window.EmekHesapModel = { defaults, compute, migrateV2, migrateV3 };
 
   /* ---------- arayüz ---------- */
   const SF = window.SF, P = window.EmekPlatform;
@@ -159,7 +169,9 @@
     const d = defaults(SF.TYPES);
     try {
       let saved = JSON.parse(localStorage.getItem(KEY) || 'null');
-      if (!saved) { const old = JSON.parse(localStorage.getItem(OLD_KEY) || 'null'); if (old && typeof old === 'object' && Array.isArray(old.machines)) saved = migrateV2(old); }
+      const prev = k => { const o = JSON.parse(localStorage.getItem(k) || 'null'); return o && typeof o === 'object' && Array.isArray(o.machines) ? o : null; };
+      if (!saved && prev(KEY_V3)) saved = migrateV3(prev(KEY_V3));
+      if (!saved && prev(KEY_V2)) saved = migrateV3(migrateV2(prev(KEY_V2)));
       if (saved && typeof saved === 'object' && Array.isArray(saved.machines)) {
         for (const k of ['machines', 'staff', 'monthly', 'oneTime']) if (!Array.isArray(saved[k])) delete saved[k];
         return Object.assign(d, saved);
@@ -193,17 +205,16 @@
         <div class="calc-grid calc-narrow">${fld('Slot sayısı', '', 'slots', S.slots, 1)}</div>
         <p class="calc-hint" id="h-slots"></p>
         <h3>Tezgâhlar</h3>
-        ${S.machines.length ? '<p class="calc-m calc-mhead" aria-hidden="true"><span>Tip</span><span>Adet</span><span>Fiyat $</span><span>Kurulum $</span><span>24 saatlik ücret $</span><span>Yıllık sigorta $</span><span></span></p>' : ''}
+        ${S.machines.length ? '<p class="calc-m calc-mhead" aria-hidden="true"><span>Tip</span><span>Adet</span><span>Fiyat $</span><span>Kurulum $</span><span>Yıllık sigorta $</span><span></span></p>' : ''}
         ${S.machines.map((m, i) => `<div class="calc-m">
           <label class="field"><span class="lbl">Tip</span><input type="text" maxlength="40" data-h="machines.${i}.name" value="${val(m.name)}" placeholder="Tezgâh tipi"></label>
           ${mfld('Adet', `machines.${i}.count`, m.count, 1)}
           ${mfld('Fiyat $', `machines.${i}.price`, m.price)}
           ${mfld('Kurulum $', `machines.${i}.install`, m.install)}
-          ${mfld('24 saatlik ücret $', `machines.${i}.rate24`, m.rate24)}
           ${mfld('Yıllık sigorta $', `machines.${i}.insYear`, m.insYear)}
           ${del('machines', i, m.name || 'Tezgâh')}</div>`).join('')}
         ${add('machines', 'Tezgâh tipi ekle')}
-        <p class="calc-note">24 saatlik ücret, tezgâhın 24 saat kesintisiz çalışması için müşteriden alınan tutardır. Tezgâh günde vardiyalar kadar çalışır ve gelir çalışılan saate göre hesaplanır. Yıllık sigorta, tezgâh başına poliçe bedelidir.</p>
+        <p class="calc-note">Yıllık sigorta, tezgâh başına poliçe bedelidir. Tezgâhların kazandırdığı saatlik ücret, Gelir ve kâr oranı bölümünde girilir.</p>
       </section>
 
       <section class="calc-sec"><h2>Çalışma düzeni</h2>
@@ -212,7 +223,6 @@
           ${fld('Günlük vardiya', '', 'shifts', S.shifts, 1)}
           ${fld('Vardiya süresi', 'saat', 'hours', S.hours)}
         </div>
-        ${range('Doluluk', 'util', S.util, 'o-util')}
         <p class="calc-hint" id="h-ops"></p>
       </section>
 
@@ -232,7 +242,7 @@
           <label class="field"><span class="sr-only">Kişi başı günlük ücret, dolar</span><input type="number" inputmode="decimal" min="0" step="any" data-h="staff.${i}.day" value="${val(r.day)}"></label>
           ${del('staff', i, r.name || 'Görev')}</div>`).join('')}
         ${add('staff', 'Görev ekle')}
-        <p class="calc-note">Günlük ücret, bir kişinin bir vardiyası için işverene toplam maliyetidir: maaş, SGK, yemek ve yol dahil. Aylık ekip gideri, günlük ücretin ayda çalışma günüyle çarpımıdır.</p>
+        <p class="calc-note">Günlük ücret, bir kişinin bir vardiyası için işverene toplam maliyetidir: maaş, SGK, yemek ve yol dahil. Operatör ve planlamacı yalnızca dolu günlerde ücret alır; doluluk sıfırsa bu ücret de sıfırdır. Diğer ekip her çalışma günü ücret alır.</p>
       </section>
 
       <section class="calc-sec"><h2>İşletme giderleri</h2>
@@ -254,8 +264,17 @@
         <p class="calc-hint" id="h-once"></p>
       </section>
 
-      <section class="calc-sec"><h2>Kâr oranı</h2>
-        <p class="calc-intro">Platformun cirodan aldığı pay.</p>
+      <section class="calc-sec"><h2>Gelir ve kâr oranı</h2>
+        <h3>Saatlik iş ücreti</h3>
+        <p class="calc-intro">İşin tezgâhın bir çalışma saati için bıraktığı tutar, yani müşterinin ödediği.</p>
+        ${S.machines.map((m, i) => `<div class="calc-rate">
+          <span id="hn-${i}">${esc(m.name || 'Tezgâh')}</span>
+          <label class="field"><span class="sr-only">${esc(m.name || 'Tezgâh')} saatlik iş ücreti, dolar</span><input type="number" inputmode="decimal" min="0" step="any" data-h="machines.${i}.hourly" value="${val(m.hourly)}"></label>
+          <small id="hr-${i}"></small></div>`).join('') || '<p class="calc-note">Önce bir tezgâh tipi ekleyin.</p>'}
+        ${range('Doluluk', 'util', S.util, 'o-util')}
+        <p class="calc-hint" id="h-util"></p>
+        <h3>Platform payı</h3>
+        <p class="calc-intro">Platformun cirodan aldığı pay; şirketin kârı budur.</p>
         <div class="calc-grid calc-grid-2">
           ${fld('Yatırımcının getirdiği işte', '%', 'feeOwn', S.feeOwn)}
           ${fld('Platformun bulduğu işte', '%', 'feePlatform', S.feePlatform)}
@@ -306,8 +325,8 @@
         <thead><tr><th scope="col"><span class="sr-only">Kalem</span></th><th scope="col">Günlük</th><th scope="col">Aylık</th></tr></thead>
         <tbody>
         ${line('Ciro', r.gross, 'strong')}
-        ${line(`Operatörler <small>${num(r.people.operators)} kişi</small>`, -r.cost.operators)}
-        ${line(`Planlamacılar <small>${num(r.people.planners)} kişi</small>`, -r.cost.planners)}
+        ${line(`Operatörler <small>${num(r.people.operators)} kişi · ${nf1.format(r.busy)} gün</small>`, -r.cost.operators)}
+        ${line(`Planlamacılar <small>${num(r.people.planners)} kişi · ${nf1.format(r.busy)} gün</small>`, -r.cost.planners)}
         ${line(`Diğer ekip <small>${num(r.people.others)} kişi</small>`, -r.cost.others)}
         ${line('Kira ve aidat', -r.cost.rent)}
         ${line('Elektrik', -r.cost.elec)}
@@ -323,6 +342,7 @@
       <table class="tbl tbl-sm calc-tbl"><tbody>
         ${row('Operatör', `${num(r.people.operators)} kişi${r.people.operators ? ` <small>vardiya başına ${num(r.people.opPerShift)}</small>` : ''}`)}
         ${row('Planlamacı', `${num(r.people.planners)} kişi`)}
+        ${row('Operatör ve planlamacının ücretli günü', `${nf1.format(r.busy)} <small>/ ${nf1.format(r.days)} gün</small>`)}
         ${row('Diğer ekip', `${num(r.people.others)} kişi`)}
         ${row('Tezgâhın günlük çalışması', `${nf1.format(r.workHours)} <small>/ 24 saat</small>`)}
         ${row('Ekibin günlük maliyeti', usd(d(r.cost.staff)))}
@@ -344,7 +364,7 @@
           <td class="strong ${t.netDay < 0 ? 'neg' : ''}">${t.netDay == null ? '—' : money(t.netDay)}</td>
           <td class="${t.net < 0 ? 'neg' : ''}">${money(t.net)}</td><td>${pct0(t.yearly)}</td><td>${years(t.paybackYears)}</td></tr>`).join('')}</tbody>
       </table></div>
-      <p class="calc-note">İlk dört tutar, bir tezgâhın dolu bir günü (${nf1.format(r.workHours)} saat çalışma) içindir. Günlük gelir, 24 saatlik ücretin çalışılan saate düşen kısmıdır. İşletme gideri; ekip, kira, elektrik, takım, bakım, sigorta ve diğer giderlerden o tezgâha düşen paydır. Ekip, kira ve diğer giderler tezgâhlara eşit bölünür.</p>`;
+      <p class="calc-note">İlk dört tutar, bir tezgâhın dolu bir günü (${nf1.format(r.workHours)} saat çalışma) içindir. Günlük gelir, saatlik iş ücretinin çalışma saatiyle çarpımıdır. İşletme gideri; ekip, kira, elektrik, takım, bakım, sigorta ve diğer giderlerden o tezgâha düşen paydır. Ekip, kira ve diğer giderler tezgâhlara eşit bölünür.</p>`;
   }
 
   function paint() {
@@ -353,8 +373,14 @@
     set('hesap-out', outHTML(r));
     set('hesap-types', detailHTML(r));
     set('h-slots', r.slots <= 0 ? '' : r.N > r.slots ? `<span class="neg">${num(r.slots)} slota ${num(r.N)} tezgâh girildi.</span>` : r.free > 0 ? `${num(r.slots)} slotun ${num(r.N)} tanesi dolu, ${num(r.free)} slot boş.` : `${num(r.slots)} slotun tamamı dolu.`);
-    set('h-ops', `${r.overHours ? '<span class="neg">Vardiyalar günde 24 saati aşıyor, 24 saat alındı.</span> ' : ''}Tezgâh günde ${nf1.format(r.workHours)} saat çalışır; 24 saatlik ücret ve giderlerin ${pct0(r.ratio)} kadarı hesaba girer. Ayda ${nf1.format(r.days)} çalışma gününün ${nf1.format(r.busy)} günü dolu.`);
-    set('h-team', `Gereken ekip: ${num(r.people.operators)} operatör${r.people.operators ? ` (vardiya başına ${num(r.people.opPerShift)})` : ''} ve ${num(r.people.planners)} planlamacı. Her operatör günde bir vardiya, ${nf1.format(r.hours)} saat çalışır. Tüm ekip ${num(r.people.total)} kişi, günlük ${usd(r.day.staff)}, aylık ${usd(r.cost.staff)}.`);
+    set('h-ops', `${r.overHours ? '<span class="neg">Vardiyalar günde 24 saati aşıyor, 24 saat alındı.</span> ' : ''}Tezgâh dolu bir günde ${nf1.format(r.workHours)} saat çalışır; elektrik ve takımın 24 saatlik tutarının ${pct0(r.ratio)} kadarı hesaba girer.`);
+    set('h-util', `Tezgâh başına ayda ${nf1.format(r.days)} çalışma gününün ${nf1.format(r.busy)} günü dolu. Gelir, operatör, planlamacı, elektrik ve takım bu günler için yazılır.`);
+    S.machines.forEach((m, i) => {
+      const t = r.types[i];
+      set('hn-' + i, `${esc(m.name || 'Tezgâh')} <em>${num(t ? t.count : 0)} adet</em>`);
+      set('hr-' + i, t ? `$ / saat · dolu bir günde ${usd(t.dayRate)}` : '');
+    });
+    set('h-team', `Gereken ekip: ${num(r.people.operators)} operatör${r.people.operators ? ` (vardiya başına ${num(r.people.opPerShift)})` : ''} ve ${num(r.people.planners)} planlamacı. Her operatör günde bir vardiya, ${nf1.format(r.hours)} saat çalışır. Operatör ve planlamacı ayda ${nf1.format(r.busy)} dolu gün için ${usd(r.cost.operators + r.cost.planners)}, diğer ekip ${usd(r.cost.others)}; tüm ekip aylık ${usd(r.cost.staff)}.`);
     set('h-once', `Tesis kurulumu toplamı ${usd(r.facility)}. Tezgâh alımı ve kurulumu ayrıca ${usd(r.machinesInvest)} tutar, bunu yatırımcılar öder.`);
     set('h-fee', `Ortalama platform payı ${pct1(r.fee)}. Şirketin kârı bu paydır; işletme giderleri yatırımcının kazancından düşülür.`);
     set('hesap-bar', `<span>Yatırımcı neti / gün <b class="${r.investorOne < 0 ? 'neg' : ''}">${money(r.day.investorOne)}</b></span><span>Şirket kârı / gün <b>${money(r.day.profit)}</b></span><button type="button" class="as-btn" data-hesap="goto">Sonuç</button>`);
@@ -380,7 +406,7 @@
     if (t.dataset.out) { const o = document.getElementById(t.dataset.out); if (o) o.textContent = '%' + num(n0(t.value)); }
     save(); paint();
   });
-  const BLANK = { machines: { name: '', count: 1, price: 0, install: 0, rate24: 0, insYear: 0 }, staff: { name: '', count: 1, day: 0 }, monthly: { name: '', amount: 0 }, oneTime: { name: '', amount: 0 } };
+  const BLANK = { machines: { name: '', count: 1, price: 0, install: 0, hourly: 0, insYear: 0 }, staff: { name: '', count: 1, day: 0 }, monthly: { name: '', amount: 0 }, oneTime: { name: '', amount: 0 } };
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-hesap]');
     if (!b || !S) return;

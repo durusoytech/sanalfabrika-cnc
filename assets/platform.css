@@ -315,7 +315,7 @@ button.mrow:hover { background: var(--surface-2); }
 .calc .field > span { font-size: 14px; }
 .calc input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .calc input[type="number"]::-webkit-outer-spin-button, .calc input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.calc-m { display: grid; grid-template-columns: minmax(0, 1.25fr) 52px repeat(4, minmax(0, 1fr)) 32px; gap: 6px; align-items: end; margin: 0 0 6px; }
+.calc-m { display: grid; grid-template-columns: minmax(0, 1.4fr) 52px repeat(3, minmax(0, 1fr)) 32px; gap: 6px; align-items: end; margin: 0 0 6px; }
 .calc-mhead { font-size: 12.5px; line-height: 1.3; color: var(--muted); }
 .calc-m .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .calc-m .icon-btn, .calc-row .icon-btn { width: 32px; height: 38px; }
@@ -475,4 +475,15 @@ button.mrow:hover { background: var(--surface-2); }
   .sim-jrow > .field:nth-child(2) { grid-column: span 2; }
   .sim-jrow > .field:nth-child(3) { grid-column: span 4; }
   .sim-jrow > .field:nth-child(4), .sim-jrow > .field:nth-child(5) { grid-column: span 3; }
+}
+
+/* hesaplama: saatlik iş ücreti satırları */
+.calc-rate { display: grid; grid-template-columns: minmax(0, 1fr) 120px minmax(0, 1fr); gap: 6px 14px; align-items: center; padding: 6px 0; }
+.calc-rate > span { font-weight: 600; overflow-wrap: anywhere; }
+.calc-rate > span em { font-style: normal; font-weight: 400; color: var(--muted); margin-left: 4px; font-size: 14px; }
+.calc-rate small { font-size: 13.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.calc-rate + h3 { margin-top: 22px; }
+@media (max-width: 480px) {
+  .calc-rate { grid-template-columns: minmax(0, 1fr) 110px; }
+  .calc-rate small { grid-column: 1 / -1; margin-top: -2px; }
 }
