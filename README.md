@@ -10,6 +10,10 @@ Sermaye ile emeğin buluştuğu üretim platformu. Yatırımcılar profesyonelce
 - **Tanıtım sitesi (`index.html`):** Sade tek sayfa. Nasıl çalıştığı, kazancın nasıl oluştuğu, makine seçenekleri tablosu, güvence, haberler ve sık sorulan sorular.
 - **Yatırımcı platformu (`platform.html`):** Aşağıdaki ekranlar, giriş ve yatırım talebi. Personel için ayrıca Yönetim ekranı.
 
+## Logo
+
+Logo dosyaları `assets/logo/` klasöründedir: yatay ve dikey logo, amblem, sekme simgesi ve PNG sürümleri. Anlamı, renk kodları ve kullanım kuralları [assets/logo/README.md](assets/logo/README.md) dosyasındadır.
+
 ## Platform ekranları
 
 - **Tesisler:** Harita, tesis bilgisi, çalışan tezgâhlar ve yatırıma açık slotlar. Boş slot seçilerek yatırım talebi oluşturulur.
